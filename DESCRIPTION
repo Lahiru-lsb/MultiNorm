@@ -1,0 +1,26 @@
+Package: MultiNorm
+Type: Package
+Title: Spatially-aware normalisation for multi slice spatial transcriptomics data
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Jane", "Doe",
+      email = "jane@example.com",
+      role = c("aut", "cre")
+    )
+  )
+Description: This R package, MultiNorm, is designed to normalize multi-slice spatial transcriptomics data. It decomposes variation into technical variation, which is unwanted, and biological variation, which should be preserved during normalization. The method further ensures that the similarity of average biological signals in pre-identified regions (niches) across slices is maintained.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports:
+    Matrix,
+    splines,
+    SpatialExperiment,
+    SummarizedExperiment,
+    MatrixGenerics,
+    edgeR,
+    stats,
+    matrixStats,
+    S4Vectors
+RoxygenNote: 7.3.3
