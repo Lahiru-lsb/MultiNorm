@@ -24,3 +24,5 @@ Imports:
     matrixStats,
     S4Vectors
 RoxygenNote: 7.3.3
+Depends: 
+    R (>= 3.5)
