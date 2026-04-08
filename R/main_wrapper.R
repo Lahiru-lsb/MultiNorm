@@ -84,12 +84,71 @@
 #'
 #' @examples
 #' \dontrun{
+#' # ------------------------------------------------------------
+#' # Expected input structure
+#' # spe_list is a list of SpatialExperiment objects (one per slice)
+#' # Each must contain a 'niche' column in colData
+#' # ------------------------------------------------------------
+#' # spe_list <- list(spe_slice1, spe_slice2)
+#' # colData(spe_list[[1]])$niche <- factor(...)
+#'
+#' # ------------------------------------------------------------
+#' # Basic usage: minimal inputs
+#' # ------------------------------------------------------------
 #' result <- MultiNorm(
 #'   spe_list,
 #'   niche_col = "niche"
 #' )
-#' }
 #'
+#' # Access normalized output
+#' norm_spe <- result
+#'
+#' # ------------------------------------------------------------
+#' # Adjust sampling and ensure reproducibility
+#' # Subsample spots for faster fitting
+#' # ------------------------------------------------------------
+#' result <- MultiNorm(
+#'   spe_list,
+#'   niche_col = "niche",
+#'   spot_frac = 0.5,
+#'   seed = 123,
+#'   verbose = TRUE
+#' )
+#'
+#' # ------------------------------------------------------------
+#' # Model tuning: spline flexibility and regularization
+#' # ------------------------------------------------------------
+#' result <- MultiNorm(
+#'   spe_list,
+#'   niche_col = "niche",
+#'   df_bio = c(8, 8),
+#'   df_tech = c(4, 4),
+#'   lambda1 = 0.05,
+#'   lambda2 = 2.0
+#' )
+#'
+#' # ------------------------------------------------------------
+#' # Use a subset of niches
+#' # ------------------------------------------------------------
+#' result <- MultiNorm(
+#'   spe_list,
+#'   niche_col = "niche",
+#'   preferred_niches = c("A", "B", "C")
+#' )
+#'
+#' # ------------------------------------------------------------
+#' # Return fitted model parameters
+#' # ------------------------------------------------------------
+#' result <- MultiNorm(
+#'   spe_list,
+#'   niche_col = "niche",
+#'   return_fit = TRUE
+#' )
+#'
+#' # Access outputs when return_fit = TRUE
+#' norm_spe <- result$norm_spe
+#' fit <- result$fit
+#' }
 #' @export
 
 MultiNorm <- function(

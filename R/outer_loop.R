@@ -196,6 +196,7 @@ fit_all_genes_nb_multislice <- function(
     U_list = U_list,
     V_list = V_list,
     likelihood = ll_trace[seq_len(k)],
+    Dmat=Dmat,
     constraints = Dmat %*% do.call(rbind, Beta_list),
     iterations = k
   )
