@@ -3,7 +3,7 @@ update_psi_edgeR <- function(Ys, Mus, max_cells = 500) {
   # Mus : n_cells × G
 
   n_cells <- ncol(Ys)
-
+  set.seed(1)
   if (n_cells > max_cells) {
     idx <- sample.int(n_cells, max_cells)  # numeric indices only
     Ys  <- Ys[, idx, drop = FALSE]
