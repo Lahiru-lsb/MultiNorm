@@ -177,7 +177,7 @@ MultiNorm <- function(
 ) {
 
   # Step 1: Fit
-
+  message('Loading')
   model_fit <- fit_spatial_nb_multislice(
     spe_list   = spe_list,
     niche_col  = niche_col,
@@ -210,11 +210,40 @@ MultiNorm <- function(
     spe_list = spe_list #original data
   )
 
+  run_config <- list(
+    call = match.call(),
+    params = list(
+      niche_col = niche_col,
+      preferred_niches = preferred_niches,
+      spot_frac = spot_frac,
+      df_bio = df_bio,
+      df_tech = df_tech,
+      lambdaC = lambdaC,
+      lambda1 = lambda1,
+      lambda2 = lambda2,
+      max_outer = max_outer,
+      max_inner = max_inner,
+      tol_disp = tol_disp,
+      tol_param = tol_param,
+      psi_damp = psi_damp,
+      param_damp = param_damp,
+      seed = seed
+    ),
+    timestamp = Sys.time()
+  )
+
+  # optional but recommended
+  run_config$session <- utils::sessionInfo()
+
   # Step 3: restore original coords
   spe_list <- lapply(spe_list, restore_coords)
 
   # Step 4: attach normalized data back to SPE
   spe_list_norm <- norm_spe(spe_list, out)
+
+  for (i in seq_along(spe_list_norm)) {
+    metadata(spe_list_norm[[i]])$MultiNorm <- run_config
+  }
 
   # Step 4: return
   if (return_fit) {

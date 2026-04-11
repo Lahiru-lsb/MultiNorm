@@ -249,7 +249,7 @@ sample_spe_proportional <- function(spe,
     cat("Sampled cells:               ", length(sampled_idx), "\n")
     #cat("Max proportion diff:         ", round(max(diff), 5), "\n")
     #cat("Proportions preserved (<1%): ", all(diff < 0.01), "\n\n")
-    print(result)
+    #print(result)
   }
 
   # ---- return ----
