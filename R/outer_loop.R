@@ -24,18 +24,35 @@ fit_all_genes_nb_multislice <- function(
   G <- nrow(Y_list[[1]])
   n_list <- sapply(Y_list, ncol)
   N <- sum(n_list)
+  Kb_list <- sapply(ubar_list, nrow)
+  Kb <- Kb_list[1]  # Assuming all same size
 
   # ---- Pre-compute row indices ----
   row_idx <- c(0, cumsum(n_list))
 
 
-  # ---- Initialize alpha ----
+  # ---- Initialize  ----
   if (is.null(alpha_init)) {
     alpha <- rep(0, S)
   } else {
     #message("Using user-provided alpha")
     alpha <- alpha_init
   }
+
+  if (is.null(Beta_init)) {
+    Beta_list <- lapply(seq_len(S), function(s) matrix(0.01, Kb, G))
+  } else {
+    #message("Using user-provided beta")
+    Beta_list <- Beta_init
+  }
+
+  if (is.null(Gamma_init)) {
+    Gamma_list <- lapply(V_list, function(V) matrix(0, ncol(V), G))
+  } else {
+    #message("Using user-provided gamma")
+    Gamma_list <- Gamma_init
+  }
+
 
   # ---- Initialize Psi ----
   if (is.null(Psi_init)) {
@@ -49,7 +66,7 @@ fit_all_genes_nb_multislice <- function(
   ll_trace <- numeric(max_outer)
 
   # ---- Build full constraint matrix D ----
-  Kb_list <- sapply(ubar_list, nrow)
+
   M <- ncol(ubar_list[[1]])
 
   niche_present <- lapply(ubar_list, function(U)
@@ -98,7 +115,7 @@ fit_all_genes_nb_multislice <- function(
   DTD <- crossprod(Dmat)
 
   # ---- Biological spline penalty ----
-  Kb <- Kb_list[1]  # Assuming all same size
+
   Pblock <- diag(c(0, rep(1, Kb - 1)))
   Pbeta  <- as.matrix(Matrix::bdiag(replicate(S, Pblock, simplify = FALSE)))
 
@@ -119,7 +136,6 @@ fit_all_genes_nb_multislice <- function(
       U_list = U_list,
       V_list = V_list,
       LS_list = LS_list,
-      alpha_init = alpha,
       Psi_list = Psi_list,
       Dmat = Dmat,
       DTD = DTD,
@@ -130,15 +146,15 @@ fit_all_genes_nb_multislice <- function(
       max_iter = max_inner,
       param_damp=param_damp,
       tol_param = tol_param,
-      Beta_init = Beta_init,
-      Gamma_init = Gamma_init
+      alpha = alpha,
+      Beta_list = Beta_list,
+      Gamma_list = Gamma_list
     )
 
     alpha <- ir$alpha
     Beta_list  <- ir$Beta
     Gamma_list <- ir$Gamma
-    Beta_init  <- Beta_list
-    Gamma_init <- Gamma_list
+
 
     Mu <- ir$Mu
 
@@ -165,11 +181,26 @@ fit_all_genes_nb_multislice <- function(
                                   nrow = n_list[s])
     }
 
-    # ---- Likelihood ----
-    ll_new <- sum(ll_gene(
+    # # ---- Likelihood ----
+    # ll_new <- sum(ll_gene(
+    #   Y = Y_stack,
+    #   Mu = Mu,
+    #   Psi = Psi_stack,
+    #   n_cells = N
+    # ))
+
+    # ---- Penalized likelihood (aligned with inner loop) ----
+    ll_new <- sum(penalized_ll(
       Y = Y_stack,
       Mu = Mu,
       Psi = Psi_stack,
+      Beta = do.call(rbind, Beta_list),
+      Gamma = do.call(rbind, Gamma_list),
+      Cmat = Dmat,
+      Pbeta = Pbeta,
+      lambdaC = lambdaC,
+      lambda1 = lambda1,
+      lambda2 = lambda2,
       n_cells = N
     ))
 
@@ -177,7 +208,7 @@ fit_all_genes_nb_multislice <- function(
     ll_trace[k] <- ll_new
 
     # ---- Convergence check ----
-    if (k > 1 && abs(ll_new - ll_old) / (abs(ll_old) + 1) < tol_disp) {
+    if (k > 1 && abs(ll_new - ll_old) / (abs(ll_old) ) < tol_disp) {
       cat("Converged at outer iteration", k, "\n")
       break
     }
