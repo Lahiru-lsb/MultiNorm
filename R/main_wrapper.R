@@ -33,7 +33,7 @@
 #'   Default is \code{1e4}.
 #'
 #' @param lambda1 Numeric. Regularization parameter for gene-specific biological coefficients.
-#'   Default is \code{0.01}.
+#'   Default is \code{0.001}.
 #'
 #' @param lambda2 Numeric. Regularization parameter for gene-specific technical
 #'   (library size) coefficients.
@@ -49,12 +49,12 @@
 #'   Default is \code{1e-4}.
 #'
 #' @param tol_param Numeric. Convergence tolerance for inner-loop parameter updates.
-#'   Default is \code{1e-4}.
+#'   Default is \code{1e-5}.
 #'
-#' @param psi_damp Numeric in (0,1]. Damping factor for dispersion updates to
-#'   stabilize optimization. Default is \code{0.3}.
+#' @param psi_damp Numeric in (0,1]. Damping factor (specifying the multiplicative factor to decrease IRLS step by when log-likelihood diverges) for dispersion updates to
+#'   stabilize optimization. Default is \code{0.5}.
 #'
-#' @param param_damp Numeric in (0,1]. Damping factor for IRWLS parameter updates
+#' @param param_damp Numeric in (0,1]. Damping factor (specifying the multiplicative factor to decrease IRWLS step by when log-likelihood diverges) for IRWLS parameter updates
 #'   (applies to all parameters except dispersion). Default is \code{0.2}.
 #'
 #' @param seed Integer. Random seed used for subsampling.
@@ -160,13 +160,13 @@ MultiNorm <- function(
     df_bio         = c(6, 6),
     df_tech        = c(3, 3),
     lambdaC        = 10000,
-    lambda1        = 0.1,
+    lambda1        = 0.001,
     lambda2        = 1.9,
     max_outer      = 30,
     max_inner      = 200,
     tol_disp       = 1e-4,
-    tol_param      = 1e-4,
-    psi_damp       = 0.3,
+    tol_param      = 1e-5,
+    psi_damp       = 0.5,
     param_damp     = 0.2,
     seed           = 1,
     alpha_init     = NULL,
@@ -177,7 +177,7 @@ MultiNorm <- function(
 ) {
 
   # Step 1: Fit
-  message('Loading')
+  message('Loading v1')
   model_fit <- fit_spatial_nb_multislice(
     spe_list   = spe_list,
     niche_col  = niche_col,
@@ -232,28 +232,31 @@ MultiNorm <- function(
     timestamp = Sys.time()
   )
 
-  # optional but recommended
+  # optional
   run_config$session <- utils::sessionInfo()
 
   # Step 3: restore original coords
   spe_list <- lapply(spe_list, restore_coords)
 
   # Step 4: attach normalized data back to SPE
-  spe_list_norm <- norm_spe(spe_list, out)
+  spe_list_norm <- norm_spe(spe_list, out$out_list)
 
   for (i in seq_along(spe_list_norm)) {
     metadata(spe_list_norm[[i]])$MultiNorm <- run_config
   }
 
   # Step 4: return
-  if (return_fit) {
-    return(list(
-      norm_spe = spe_list_norm,
-      norm_data = out,
-      fit = model_fit$fit,
-      call=model_fit$call
-    ))
-  }
+  fit <- model_fit$fit
+  fit$U_all <- out$U_all
+  fit$V_all <- out$V_all
+
+  return(list(
+    norm_spe = spe_list_norm,
+    fit = fit,
+    call = model_fit$call,
+    Eta_full_list = out$Eta_full_list,
+    percentiles = out$percentiles
+  ))
 
   return(spe_list_norm)
 }

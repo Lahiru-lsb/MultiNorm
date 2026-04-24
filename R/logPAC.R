@@ -16,7 +16,7 @@ compute_logPAC <- function(
 
   slices <- unique(slice_index)
 
-  # -------- Efficient slice-level winsorization --------
+  # -------- slice-level winsorization --------
   for (s in slices) {
 
     rows <- which(slice_index == s)
@@ -29,7 +29,7 @@ compute_logPAC <- function(
     # Vectorized: broadcast psi_max across all rows
     Psi_w[rows, ] <- pmin(Psi_mat[rows, ], psi_max)
   }
-  #-------- PIT transform (vectorized) --------
+  #--------  transform  --------
   inv_Psi_w <- 1 / Psi_w
 
   lb <- pnbinom(Y_mat - 1, mu = Mu_mat, size = inv_Psi_w)
@@ -38,7 +38,12 @@ compute_logPAC <- function(
   pU <- pmax(pmin(pU, 0.999), 0.001)
 
   # -------- biological back-transform --------
-  log2(qnbinom(pU, mu = Mu_bio, size = 1 / Psi_w) + 1)
+  norm=log2(qnbinom(pU, mu = Mu_bio, size = 1 / Psi_w) + 1)
+
+  return(
+    list(percentiles=pU,
+         norm=norm)
+  )
 }
 
 #post estimations
@@ -50,13 +55,24 @@ predict_logPAC_multislice <- function(
 ) {
 
   S <- length(spe_list)
-
+  nm<- names(spe_list)
   # ---- Pre-allocate lists ----
   Eta_full_list <- vector("list", S)
   Eta_bio_list  <- vector("list", S)
   Psi_list_exp  <- vector("list", S)
   Y_list        <- vector("list", S)
+  U_full_list   <- vector("list", S)
+  V_full_list   <- vector("list", S)
   n_list        <- integer(S)  # Use integer for indices
+
+  # ---- Assign names ----
+  names(Eta_full_list) <- nm
+  names(Eta_bio_list)  <- nm
+  names(Psi_list_exp)  <- nm
+  names(Y_list)        <- nm
+  names(U_full_list)   <- nm
+  names(V_full_list)   <- nm
+  names(n_list)        <- nm
 
   # ================= LOOP OVER SLICES =================
   for (s in seq_len(S)) {
@@ -69,6 +85,10 @@ predict_logPAC_multislice <- function(
     # ---- spline bases ----
     U <- sp2d(d$x, d$y, dfx = df_bio[1], dfy = df_bio[2])
     V <- sp2d(d$x, d$y, dfx = df_tech[1], dfy = df_tech[2])
+
+    #store to output U and V
+    V_full_list[[s]] <- V
+    U_full_list[[s]] <- U
 
     blk <- build_blocks(d$LS, U, V)
 
@@ -91,10 +111,29 @@ predict_logPAC_multislice <- function(
       X_gamma %*% Gamma_s
 
     Eta_full <- pmin(pmax(Eta_full, -30), 30)
+    # Eta_full_max <- matrixStats::colMedians(Eta_full) +
+    #   4 * matrixStats::colMads(Eta_full)
+    #
+    # Eta_full <- pmin(
+    #   Eta_full,
+    #   matrix(Eta_full_max, nrow(Eta_full), ncol(Eta_full), byrow = TRUE)
+    # )
+
+    Mu_full <- exp(Eta_full)
 
     # ---- biological mean ----
     Eta_bio <- X_beta %*% Beta_s
     Eta_bio <- pmin(pmax(Eta_bio, -30), 30)
+    # Eta_bio_max <- matrixStats::colMedians(Eta_bio) +
+    #   4 * matrixStats::colMads(Eta_bio)
+    #
+    # Eta_bio <- pmin(
+    #   Eta_bio,
+    #   matrix(Eta_bio_max, nrow(Eta_bio), ncol(Eta_bio), byrow = TRUE)
+    # )
+
+    Mu_bio <- exp(Eta_bio)
+
 
     # ---- store ----
     Eta_full_list[[s]] <- Eta_full
@@ -146,17 +185,24 @@ predict_logPAC_multislice <- function(
     slice_index = slice_index
   )
 
-  dimnames(norm_logPAC) <- dimnames(Y)
+  dimnames(norm_logPAC$norm) <- dimnames(Y)
 
-  # ---------------- split back to slices (optimized) ----------------
+  # ---------------- split back to slices ----------------
   out_list <- vector("list", S)
 
   for (s in seq_len(S)) {
     rows <- (row_idx[s] + 1):row_idx[s + 1]
-    out_list[[s]] <- norm_logPAC[rows, , drop = FALSE]
+    out_list[[s]] <- norm_logPAC$norm[rows, , drop = FALSE]
   }
 
   names(out_list) <-names(spe_list)
+  list(
+    out_list=out_list,
+    Eta_full_list=Eta_full_list,
+    percentiles=norm_logPAC$percentiles,
+    V_all=V_full_list,
+    U_all=U_full_list
 
-  out_list
+  )
+  #out_list
 }
