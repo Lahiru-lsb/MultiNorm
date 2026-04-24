@@ -180,9 +180,12 @@ sample_spe_proportional <- function(spe,
 
   # ---- extract ----
   niche_vec <- cd[[niche_col]]
+  niche_vec <- factor(niche_vec)
+  niche_vec <- droplevels(niche_vec) #drop unused cluster assignments
   cells     <- colnames(spe)
 
   # ---- split indices ----
+
   idx_valid <- which(!is.na(niche_vec))
   idx_na    <- which(is.na(niche_vec))
 

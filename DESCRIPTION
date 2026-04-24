@@ -22,7 +22,8 @@ Imports:
     edgeR,
     stats,
     matrixStats,
-    S4Vectors
+    S4Vectors,
+     future.apply
 RoxygenNote: 7.3.3
 Depends: 
     R (>= 3.5)

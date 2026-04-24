@@ -59,7 +59,7 @@ irwls_multislice_backfit <- function(
   }
 
 
-  Mu[] <- exp(Eta)
+  Mu[]  <- exp(Eta)
 
   ll_old <- sum(penalized_ll(
     Y = Y_stack,
@@ -79,6 +79,7 @@ irwls_multislice_backfit <- function(
   for (iter in seq_len(max_iter)) {
 
     Z_stack[] <- Eta + (Y_stack - Mu) / Mu
+    #Z_stack[] <- Eta + ((Y_stack + 0.01) / (Mu + 0.01) - 1)
     W_stack[] <- Mu / (1 + Psi_stack * Mu)
 
     Z_list <- vector("list", S)
@@ -89,6 +90,19 @@ irwls_multislice_backfit <- function(
       Z_list[[s]] <- Z_stack[rows, , drop = FALSE]
       W_list[[s]] <- rowMeans(W_stack[rows, , drop = FALSE])
     }
+
+    # for (s in seq_len(S)) {
+    #   rows <- (row_idx[s] + 1):row_idx[s + 1]
+    #   Z_list[[s]] <- Z_stack[rows, , drop = FALSE]
+    #
+    #   wt <- rowMeans(W_stack[rows, , drop = FALSE])
+    #
+    #   # ---  weight clipping ---
+    #   cap <- quantile(wt, 0.98, na.rm = TRUE)
+    #   wt  <- pmin(wt, cap)
+    #
+    #   W_list[[s]] <- wt
+    # }
 
 
 
@@ -103,7 +117,7 @@ irwls_multislice_backfit <- function(
 
     step_factor <- 1
 
-    for (attempt in 1:16) {
+    for (attempt in 1:4) {
 
       damp <- param_damp * step_factor
 
@@ -193,7 +207,7 @@ irwls_multislice_backfit <- function(
         break
 
       } else {
-        # Reject → shrink step (SpaNorm behavior)
+        # Reject
         step_factor <- step_factor / 2
       }
     }

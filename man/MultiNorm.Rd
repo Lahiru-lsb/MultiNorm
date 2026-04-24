@@ -13,13 +13,13 @@ MultiNorm(
   df_bio = c(6, 6),
   df_tech = c(3, 3),
   lambdaC = 10000,
-  lambda1 = 0.1,
+  lambda1 = 0.001,
   lambda2 = 1.9,
   max_outer = 30,
   max_inner = 200,
   tol_disp = 1e-04,
-  tol_param = 1e-04,
-  psi_damp = 0.3,
+  tol_param = 1e-05,
+  psi_damp = 0.5,
   param_damp = 0.2,
   seed = 1,
   alpha_init = NULL,
@@ -59,7 +59,7 @@ biological effects across slices at the niche level.
 Default is \code{1e4}.}
 
 \item{lambda1}{Numeric. Regularization parameter for gene-specific biological coefficients.
-Default is \code{0.01}.}
+Default is \code{0.001}.}
 
 \item{lambda2}{Numeric. Regularization parameter for gene-specific technical
 (library size) coefficients.
@@ -75,12 +75,12 @@ Default is \code{200}.}
 Default is \code{1e-4}.}
 
 \item{tol_param}{Numeric. Convergence tolerance for inner-loop parameter updates.
-Default is \code{1e-4}.}
+Default is \code{1e-5}.}
 
-\item{psi_damp}{Numeric in (0,1]. Damping factor for dispersion updates to
-stabilize optimization. Default is \code{0.3}.}
+\item{psi_damp}{Numeric in (0,1]. Damping factor (specifying the multiplicative factor to decrease IRLS step by when log-likelihood diverges) for dispersion updates to
+stabilize optimization. Default is \code{0.5}.}
 
-\item{param_damp}{Numeric in (0,1]. Damping factor for IRWLS parameter updates
+\item{param_damp}{Numeric in (0,1]. Damping factor (specifying the multiplicative factor to decrease IRWLS step by when log-likelihood diverges) for IRWLS parameter updates
 (applies to all parameters except dispersion). Default is \code{0.2}.}
 
 \item{seed}{Integer. Random seed used for subsampling.
