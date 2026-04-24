@@ -104,7 +104,7 @@ get_slice_data <- function(spe) {
 
 
 
-#captures 99.99% of data
+# #captures 99.99% of data
 cap_coeff <- function(M, k = 4) {
 
   med <- matrixStats::rowMedians(M)
@@ -118,6 +118,7 @@ cap_coeff <- function(M, k = 4) {
 
   pmin(pmax(M, lo_mat), hi_mat)
 }
+
 
 
 #assign normalized data back to spe object
