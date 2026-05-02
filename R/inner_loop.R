@@ -239,11 +239,35 @@ irwls_multislice_backfit <- function(
     ll_old <- ll_new
   }
 
+  # ---- Compute mu without intercept (post-fit :for dispersion update) ----
+
+  Eta_nointercept <- matrix(0, N, G)
+
+  for (s in seq_len(S)) {
+    rows <- (row_idx[s] + 1):row_idx[s + 1]
+
+    # Drop intercept row from Beta
+    beta_rest <- Beta_list[[s]][-1, , drop = FALSE]
+
+    # Recompute eta without intercept
+    Eta_nointercept[rows, ] <-
+      alpha[s] * logLS_list[[s]] +
+      U_list[[s]] %*% beta_rest +
+      LV_list[[s]] %*% Gamma_list[[s]]
+  }
+
+  Mu_nointercept <- exp(Eta_nointercept)
+  cat("mu_nointercept range:",
+      sprintf("[%.4f, %.4f]\n",
+              min(Mu_nointercept, na.rm = TRUE),
+              max(Mu_nointercept, na.rm = TRUE)))
+
   list(
     alpha = alpha,
     Beta  = Beta_list,
     Gamma = Gamma_list,
     Mu    = Mu,
+    Mu_nointercept=Mu_nointercept,
     Eta   = Eta,
     ll    = ll_old,
     iterations = iter

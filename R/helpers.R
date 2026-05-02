@@ -105,7 +105,7 @@ get_slice_data <- function(spe) {
 
 
 # #captures 99.99% of data
-cap_coeff <- function(M, k = 4) {
+cap_coeff <- function(M, k = 10) {
 
   med <- matrixStats::rowMedians(M)
   mad <- matrixStats::rowMads(M)
