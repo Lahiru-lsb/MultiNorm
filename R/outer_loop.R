@@ -167,6 +167,7 @@ fit_all_genes_nb_multislice <- function(
 
 
     Mu <- ir$Mu
+    Mu_nointercept<-ir$Mu_nointercept
 
     # ---- Dispersion update ----
     Psi_new <- vector("list", S)
@@ -175,7 +176,7 @@ fit_all_genes_nb_multislice <- function(
       rows <- (row_idx[s] + 1):row_idx[s + 1]
       Psi_new[[s]] <- update_psi_edgeR(
         Ys  = Y_list[[s]],
-        Mus = Mu[rows, , drop = FALSE]
+        Mus = Mu_nointercept[rows, , drop = FALSE] # set mu without intercept
       )
     }
 
