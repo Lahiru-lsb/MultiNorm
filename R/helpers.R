@@ -104,8 +104,8 @@ get_slice_data <- function(spe) {
 
 
 
-# #captures 99.99% of data
-cap_coeff <- function(M, k = 10) {
+#winsorize coefficients to prevent numerical explosions
+cap_coeff <- function(M, k = 20) {
 
   med <- matrixStats::rowMedians(M)
   mad <- matrixStats::rowMads(M)
@@ -118,6 +118,53 @@ cap_coeff <- function(M, k = 10) {
 
   pmin(pmax(M, lo_mat), hi_mat)
 }
+
+
+cap_coeff1 <- function(M, k = 20, name = "coeff") {
+
+  med <- matrixStats::rowMedians(M, na.rm = TRUE)
+  mad <- matrixStats::rowMads(M, na.rm = TRUE)
+
+  hi <- med + k * mad
+  lo <- med - k * mad
+
+  hi_mat <- matrix(hi, nrow = nrow(M), ncol = ncol(M))
+  lo_mat <- matrix(lo, nrow = nrow(M), ncol = ncol(M))
+
+  M_cap <- pmin(pmax(M, lo_mat), hi_mat)
+
+  n_cap <- sum(M_cap != M, na.rm = TRUE)
+  prop_cap <- n_cap / sum(is.finite(M))
+
+  message(sprintf(
+    "%s capped: %d / %d = %.4f%%",
+    name, n_cap, sum(is.finite(M)), 100 * prop_cap
+  ))
+
+  M_cap
+}
+
+
+cap_coeff_no_intercept <- function(M, k = 20) {
+
+  M2 <- M
+  rows <- 2:nrow(M)
+
+  med <- matrixStats::rowMedians(M2[rows, , drop = FALSE])
+  mad <- matrixStats::rowMads(M2[rows, , drop = FALSE])
+
+  hi <- med + k * mad
+  lo <- med - k * mad
+
+  hi_mat <- matrix(hi, nrow = length(rows), ncol = ncol(M2))
+  lo_mat <- matrix(lo, nrow = length(rows), ncol = ncol(M2))
+
+  M2[rows, ] <- pmin(pmax(M2[rows, , drop = FALSE], lo_mat), hi_mat)
+
+  M2
+}
+
+
 
 
 
