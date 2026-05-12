@@ -246,17 +246,22 @@ MultiNorm <- function(
   }
 
   # Step 4: return
-  fit <- model_fit$fit
-  fit$U_all <- out$U_all
-  fit$V_all <- out$V_all
+  if (return_fit) {
+    fit <- model_fit$fit
 
-  return(list(
-    norm_spe = spe_list_norm,
-    fit = fit,
-    call = model_fit$call,
-    Eta_full_list = out$Eta_full_list,
-    percentiles = out$percentiles
-  ))
+    fit$U_all   <- out$U_all
+    fit$V_all   <- out$V_all
+    fit$bio  <- out$bio
+    fit$tech <- out$tech
+
+    return(list(
+      norm_spe = spe_list_norm,
+      fit = fit,
+      call = model_fit$call,
+      Eta_full_list = out$Eta_full_list,
+      percentiles = out$percentiles
+    ))
+  }
 
   return(spe_list_norm)
 }
