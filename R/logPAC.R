@@ -59,6 +59,7 @@ predict_logPAC_multislice <- function(
   # ---- Pre-allocate lists ----
   Eta_full_list <- vector("list", S)
   Eta_bio_list  <- vector("list", S)
+  Eta_tech_list <- vector("list", S)
   Psi_list_exp  <- vector("list", S)
   Y_list        <- vector("list", S)
   U_full_list   <- vector("list", S)
@@ -104,40 +105,30 @@ predict_logPAC_multislice <- function(
     Beta_s  <- fit$Beta[[s]]
     Gamma_s <- fit$Gamma[[s]]
 
+
+    Eta_bio  <- X_beta %*% Beta_s
+    Eta_tech <- alpha_s * logLS + X_gamma %*% Gamma_s
+
+
     # ---- full mean ----
-    Eta_full <-
-      alpha_s * logLS +
-      X_beta  %*% Beta_s +
-      X_gamma %*% Gamma_s
+    # Eta_full <-
+    #   alpha_s * logLS +
+    #   X_beta  %*% Beta_s +
+    #   X_gamma %*% Gamma_s
 
+    Eta_full <- Eta_bio+Eta_tech
     Eta_full <- pmin(pmax(Eta_full, -30), 30)
-    # Eta_full_max <- matrixStats::colMedians(Eta_full) +
-    #   4 * matrixStats::colMads(Eta_full)
-    #
-    # Eta_full <- pmin(
-    #   Eta_full,
-    #   matrix(Eta_full_max, nrow(Eta_full), ncol(Eta_full), byrow = TRUE)
-    # )
-
     Mu_full <- exp(Eta_full)
 
     # ---- biological mean ----
-    Eta_bio <- X_beta %*% Beta_s
     Eta_bio <- pmin(pmax(Eta_bio, -30), 30)
-    # Eta_bio_max <- matrixStats::colMedians(Eta_bio) +
-    #   4 * matrixStats::colMads(Eta_bio)
-    #
-    # Eta_bio <- pmin(
-    #   Eta_bio,
-    #   matrix(Eta_bio_max, nrow(Eta_bio), ncol(Eta_bio), byrow = TRUE)
-    # )
-
     Mu_bio <- exp(Eta_bio)
 
 
     # ---- store ----
     Eta_full_list[[s]] <- Eta_full
     Eta_bio_list[[s]]  <- Eta_bio
+    Eta_tech_list[[s]]  <- Eta_tech
 
     # ---- expand dispersion ----
     Psi_list_exp[[s]] <-
@@ -154,6 +145,7 @@ predict_logPAC_multislice <- function(
   # Pre-allocate stacked matrices
   Eta_full <- matrix(0, N, G)
   Eta_bio  <- matrix(0, N, G)
+  Eta_tech  <- matrix(0, N, G)
   Psi      <- matrix(0, N, G)
   Y        <- matrix(0, N, G)
 
@@ -165,6 +157,7 @@ predict_logPAC_multislice <- function(
     rows <- (row_idx[s] + 1):row_idx[s + 1]
     Eta_full[rows, ] <- Eta_full_list[[s]]
     Eta_bio[rows, ]  <- Eta_bio_list[[s]]
+    Eta_tech[rows, ]  <- Eta_tech_list[[s]]
     Psi[rows, ]      <- Psi_list_exp[[s]]
     Y[rows, ]        <- Y_list[[s]]
   }
@@ -201,7 +194,9 @@ predict_logPAC_multislice <- function(
     Eta_full_list=Eta_full_list,
     percentiles=norm_logPAC$percentiles,
     V_all=V_full_list,
-    U_all=U_full_list
+    U_all=U_full_list,
+    bio=Eta_bio,
+    tech=Eta_tech
 
   )
   #out_list
