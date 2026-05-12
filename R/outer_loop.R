@@ -40,7 +40,7 @@ fit_all_genes_nb_multislice <- function(
   }
 
   if (is.null(Beta_init)) {
-    Beta_list <- lapply(seq_len(S), function(s) matrix(0.01, Kb, G))
+    Beta_list <- lapply(seq_len(S), function(s) matrix(0.0, Kb, G))
   } else {
     #message("Using user-provided beta")
     Beta_list <- Beta_init
@@ -56,7 +56,7 @@ fit_all_genes_nb_multislice <- function(
 
   # ---- Initialize Psi ----
   if (is.null(Psi_init)) {
-    Psi_list <- lapply(seq_len(S), function(s) rep(0.1, G))
+    Psi_list <- lapply(seq_len(S), function(s) rep(0, G))
   } else {
     #message("Using user-provided psi")
     Psi_list <- Psi_init
