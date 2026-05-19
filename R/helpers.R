@@ -82,7 +82,7 @@ get_slice_data <- function(spe) {
   if ("LS" %in% colnames(cd)) {
 
     LS <- as.numeric(cd$LS)
-    #message("LS extracted from colData")
+    message("LS extracted from colData")
 
     if (length(LS) != ncol(cts)) {
       stop("colData(spe)$LS length does not match number of columns.")

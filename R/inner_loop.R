@@ -257,10 +257,10 @@ irwls_multislice_backfit <- function(
   }
 
   Mu_nointercept <- exp(Eta_nointercept)
-  cat("mu_nointercept range:",
-      sprintf("[%.4f, %.4f]\n",
-              min(Mu_nointercept, na.rm = TRUE),
-              max(Mu_nointercept, na.rm = TRUE)))
+  # cat("mu_nointercept range:",
+  #     sprintf("[%.4f, %.4f]\n",
+  #             min(Mu_nointercept, na.rm = TRUE),
+  #             max(Mu_nointercept, na.rm = TRUE)))
 
   list(
     alpha = alpha,
