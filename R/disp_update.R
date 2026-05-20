@@ -1,4 +1,4 @@
-update_psi_edgeR <- function(Ys, Mus, max_cells = 1000) {
+update_psi_edgeR <- function(Ys, Mus, max_cells = 500) {
   # Ys  : G × n_cells
   # Mus : n_cells × G
 

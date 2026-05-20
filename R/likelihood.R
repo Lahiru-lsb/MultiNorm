@@ -19,27 +19,24 @@ ll_gene <- function(Y, Mu, Psi, n_cells) {
 penalized_ll <- function(
     Y, Mu, Psi,
     Beta, Gamma,
-    Cmat, Pbeta,
+    Cmat,
     lambdaC, lambda1, lambda2,
     n_cells
 ) {
   # ---------- NB likelihood per gene ----------
   llg <- ll_gene(Y, Mu, Psi, n_cells)   # length G
 
-  # ---------- niche-matching penalty (per gene) ----------
-  CB <- as.matrix(Cmat %*% Beta)                   # (constraints × G)
-  penC_g <-  lambdaC * colSums(CB^2)
+  # ---------- niche-matching penalty ----------
+  CB <- as.matrix(Cmat %*% Beta)        # constraints × G
+  penC_g <- lambdaC * colSums(CB^2)
 
-  # ---------- biological spline penalty (per gene) ----------
-  PB <- Pbeta %*% Beta                  # (basis × G)
-  penB_g <-  lambda1 * colSums(Beta * PB)
+  # ---------- biological spline ridge ----------
+  penB_g <- lambda1 * colSums(Beta^2)
 
-  # ---------- technical spline ridge (per gene) ----------
-  penG_g <-  lambda2 * colSums(Gamma^2)
+  # ---------- technical spline ridge ----------
+  penG_g <- lambda2 * colSums(Gamma^2)
 
-  # ---------- gene-wise penalized log-likelihood ----------
   llg - penC_g - penB_g - penG_g
-
 }
 
 

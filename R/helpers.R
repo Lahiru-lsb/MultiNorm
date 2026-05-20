@@ -1,17 +1,17 @@
 #blocks
 build_blocks <- function(LS, U, V) {
-  # Compute log library size
   if (any(LS == 0)) {
     stop("LS contains zero values, cannot take log.")
   }
+
   logLS <- log(LS)
 
   list(
     # Global slice-specific library size effect
     X_alpha = matrix(logLS, ncol = 1),
 
-    # Biological design matrix (intercept + spatial splines)
-    X_beta  = cbind(1, U),
+    # Biological spline design matrix only; no intercept here
+    X_beta  = U,
 
     # Technical spline design matrix scaled by log library size
     X_gamma = scale_rows(V, logLS)
@@ -20,25 +20,22 @@ build_blocks <- function(LS, U, V) {
 
 
 # Compute average biological spline basis within each matched niche
-# Returns a (K_b+1) × M matrix (columns = niches)
-niche_means <- function(U,niche_vec,niches){
+# Returns a K_b × M matrix (columns = niches)
+niche_means <- function(U, niche_vec, niches) {
 
   K <- ncol(U)
   M <- length(niches)
 
-  out <- matrix(0,K,M)
+  out <- matrix(0, K, M)
   colnames(out) <- niches
 
-  for(m in seq_len(M)){
+  for (m in seq_len(M)) {
 
-    idx <- which(niche_vec==niches[m])
+    idx <- which(niche_vec == niches[m])
 
-    if(length(idx)>0){
-
-      out[,m] <- colMeans(U[idx,,drop=FALSE])
-
+    if (length(idx) > 0) {
+      out[, m] <- colMeans(U[idx, , drop = FALSE])
     }
-
   }
 
   out
@@ -254,7 +251,7 @@ sample_spe_proportional <- function(spe,
 
   # ---- subset SPE (correct way) ----
   spe_sampled <- spe[, sampled_idx, drop = FALSE]
-
+  S4Vectors::metadata(spe_sampled)$sampled_idx <- sampled_idx
   # ---- construct tracking df (optional output) ----
   cell_niche <- data.frame(
     cell  = cells,
@@ -314,4 +311,31 @@ sample_spe_proportional <- function(spe,
   } else {
     return(spe_sampled)
   }
+}
+
+
+
+
+make_sumzero_contrast <- function(S) {
+  if (S < 2) {
+    stop("S must be at least 2.")
+  }
+
+  rbind(
+    diag(S - 1),
+    -rep(1, S - 1)
+  )
+}
+
+build_Z_delta <- function(A, n_list) {
+  S <- length(n_list)
+
+  if (nrow(A) != S) {
+    stop("nrow(A) must equal number of slices.")
+  }
+
+  do.call(rbind, lapply(seq_len(S), function(s) {
+    matrix(1, nrow = n_list[s], ncol = 1) %*%
+      matrix(A[s, ], nrow = 1)
+  }))
 }
