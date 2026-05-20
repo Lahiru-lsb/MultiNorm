@@ -1,5 +1,5 @@
 #----optimized logpac and post estimation----
-compute_logPAC <- function(
+compute_logPAC1 <- function(
     Y,              # cells x genes
     Mu_full,
     Mu_bio,
@@ -45,7 +45,85 @@ compute_logPAC <- function(
          norm=norm)
   )
 }
+compute_logPAC <- function(
+    Y,              # cells x genes
+    Mu_full,
+    Mu_bio,
+    Psi,            # cells x genes
+    slice_index     # length Ncells
+) {
 
+  Y_mat   <- as.matrix(Y)
+  Mu_mat  <- as.matrix(Mu_full)
+  Mu_bio  <- as.matrix(Mu_bio)
+  Psi_mat <- as.matrix(Psi)
+
+  slices <- unique(slice_index)
+
+  # -------- calibrate full mean for percentile/PIT only --------
+  Mu_full_cal <- Mu_mat
+
+  for (s in slices) {
+    rows <- which(slice_index == s)
+
+    y_sum  <- colSums(Y_mat[rows, , drop = FALSE])
+    mu_sum <- colSums(Mu_full_cal[rows, , drop = FALSE])
+
+    delta <- log((y_sum + 1e-8) / (mu_sum + 1e-8))
+
+    Mu_full_cal[rows, ] <- sweep(
+      Mu_full_cal[rows, , drop = FALSE],
+      2,
+      exp(delta),
+      "*"
+    )
+  }
+
+  # optional diagnostic
+  # after this, these ratios should be close to 1
+  # for (s in slices) {
+  #   rows <- which(slice_index == s)
+  #   print(range(
+  #     colSums(Y_mat[rows, , drop = FALSE]) /
+  #       pmax(colSums(Mu_full_cal[rows, , drop = FALSE]), 1e-8),
+  #     na.rm = TRUE
+  #   ))
+  # }
+
+  # -------- slice-level winsorization of dispersion --------
+  Psi_w <- Psi_mat
+
+  for (s in slices) {
+    rows <- which(slice_index == s)
+
+    psi_vec <- Psi_mat[rows[1], ]
+
+    psi_max <- exp(median(log(psi_vec)) + 3 * mad(log(psi_vec)))
+
+    Psi_w[rows, ] <- pmin(Psi_mat[rows, ], psi_max)
+  }
+
+  inv_Psi_w <- 1 / Psi_w
+
+  # -------- PIT using calibrated full mean --------
+  lb <- pnbinom(Y_mat - 1, mu = Mu_full_cal, size = inv_Psi_w)
+  ub <- dnbinom(Y_mat,     mu = Mu_full_cal, size = inv_Psi_w) + lb
+
+  # mid-PIT
+  pU <- (lb + ub) / 2
+  pU <- pmax(pmin(pU, 0.999), 0.001)
+
+  # -------- biological back-transform --------
+  norm <- log2(qnbinom(pU, mu = Mu_bio, size = 1 / Psi_w) + 1)
+
+  return(
+    list(
+      percentiles = pU,
+      norm = norm,
+      Mu_full_cal = Mu_full_cal
+    )
+  )
+}
 #post estimations
 predict_logPAC_multislice <- function(
     fit,
