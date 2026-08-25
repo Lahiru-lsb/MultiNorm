@@ -56,6 +56,8 @@ fit_spatial_nb_multislice <- function(
 
     # Store original coordinates
     coords_orig <- SpatialExperiment::spatialCoords(spe)
+    # select only x y coords
+    coords_orig <- coords_orig[,1:2]
     S4Vectors::metadata(spe)$orig_coords <- coords_orig
 
     # Scale full-data coordinates before sampling
