@@ -32,16 +32,16 @@
 #'   effects across matched niches and slices. Default is \code{10000}.
 #'
 #' @param lambda1 Numeric. Ridge regularization parameter for biological spline
-#'   coefficients. Default is \code{0.001}.
+#'   coefficients. Default is \code{0.01}.
 #'
 #' @param lambda2 Numeric. Ridge regularization parameter for technical spline
 #'   coefficients. Default is \code{2}.
 #'
 #' @param max_outer Integer. Maximum number of outer iterations for dispersion
-#'   updates. Default is \code{30}.
+#'   updates. Default is \code{20}.
 #'
 #' @param max_inner Integer. Maximum number of inner IRWLS iterations for model
-#'   parameter updates. Default is \code{200}.
+#'   parameter updates. Default is \code{100}.
 #'
 #' @param tol_disp Numeric. Convergence tolerance for dispersion updates.
 #'   Default is \code{1e-4}.
@@ -50,7 +50,7 @@
 #'   updates. Default is \code{1e-5}.
 #'
 #' @param psi_damp Numeric in \code{(0, 1]}. Damping factor for dispersion
-#'   updates. Default is \code{0.5}.
+#'   updates. Default is \code{1}.
 #'
 #' @param param_damp Numeric in \code{(0, 1]}. Damping factor for IRWLS
 #'   parameter updates. Default is \code{0.2}.
@@ -179,13 +179,13 @@ MultiNorm <- function(
     df_bio         = c(6, 6),
     df_tech        = c(3, 3),
     lambdaC        = 10000,
-    lambda1        = 0.001,
+    lambda1        = 0.01,
     lambda2        = 2,
-    max_outer      = 30,
-    max_inner      = 200,
+    max_outer      = 20,
+    max_inner      = 100,
     tol_disp       = 1e-4,
     tol_param      = 1e-5,
-    psi_damp       = 0.5,
+    psi_damp       = 1,
     param_damp     = 0.2,
     seed           = 1,
     alpha_init     = NULL,

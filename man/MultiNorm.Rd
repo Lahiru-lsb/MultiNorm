@@ -13,19 +13,22 @@ MultiNorm(
   df_bio = c(6, 6),
   df_tech = c(3, 3),
   lambdaC = 10000,
-  lambda1 = 0.001,
-  lambda2 = 1.9,
-  max_outer = 30,
-  max_inner = 200,
+  lambda1 = 0.01,
+  lambda2 = 2,
+  max_outer = 20,
+  max_inner = 100,
   tol_disp = 1e-04,
   tol_param = 1e-05,
-  psi_damp = 0.5,
+  psi_damp = 1,
   param_damp = 0.2,
   seed = 1,
   alpha_init = NULL,
   Beta_init = NULL,
   Gamma_init = NULL,
   Psi_init = NULL,
+  zeta_init = NULL,
+  rho_init = NULL,
+  A = NULL,
   return_fit = FALSE
 )
 }
@@ -38,95 +41,123 @@ specifying niche labels. Niches represent biologically similar clusters
 shared across slices.}
 
 \item{preferred_niches}{Optional vector specifying a subset of niche labels.
-Default is \code{NULL} (all niches are used).}
+Default is \code{NULL}, in which case all shared niches are used.}
 
-\item{spot_frac}{Numeric in (0,1]. Proportion of spots to sample for
+\item{spot_frac}{Numeric in \code{(0, 1]}. Proportion of spots to sample for
 model fitting. Default is \code{1}.}
 
 \item{verbose}{Logical. If \code{TRUE}, prints sampling details.
 Default is \code{FALSE}.}
 
-\item{df_bio}{Numeric vector of length 2 specifying degrees of freedom
-for the thin-plate spline modeling biological spatial effects.
+\item{df_bio}{Numeric vector of length 2 specifying degrees of freedom for
+the two-dimensional spline basis used to model biological spatial effects.
 Default is \code{c(6, 6)}.}
 
-\item{df_tech}{Numeric vector of length 2 specifying degrees of freedom
-for the thin-plate spline modeling technical (library size) effects.
-Default is \code{c(3, 3)}.}
+\item{df_tech}{Numeric vector of length 2 specifying degrees of freedom for
+the two-dimensional spline basis used to model library-size-associated
+technical effects. Default is \code{c(3, 3)}.}
 
-\item{lambdaC}{Numeric. Penalty coefficient enforcing similarity of
-biological effects across slices at the niche level.
-Default is \code{1e4}.}
+\item{lambdaC}{Numeric. Penalty coefficient enforcing similarity of biological
+effects across matched niches and slices. Default is \code{10000}.}
 
-\item{lambda1}{Numeric. Regularization parameter for gene-specific biological coefficients.
-Default is \code{0.001}.}
+\item{lambda1}{Numeric. Ridge regularization parameter for biological spline
+coefficients. Default is \code{0.01}.}
 
-\item{lambda2}{Numeric. Regularization parameter for gene-specific technical
-(library size) coefficients.
-Default is \code{1.9}.}
+\item{lambda2}{Numeric. Ridge regularization parameter for technical spline
+coefficients. Default is \code{2}.}
 
-\item{max_outer}{Integer. Maximum number of outer iterations.
-Default is \code{30}.}
+\item{max_outer}{Integer. Maximum number of outer iterations for dispersion
+updates. Default is \code{20}.}
 
-\item{max_inner}{Integer. Maximum number of inner IRWLS iterations.
-Default is \code{200}.}
+\item{max_inner}{Integer. Maximum number of inner IRWLS iterations for model
+parameter updates. Default is \code{100}.}
 
 \item{tol_disp}{Numeric. Convergence tolerance for dispersion updates.
 Default is \code{1e-4}.}
 
-\item{tol_param}{Numeric. Convergence tolerance for inner-loop parameter updates.
-Default is \code{1e-5}.}
+\item{tol_param}{Numeric. Convergence tolerance for inner-loop parameter
+updates. Default is \code{1e-5}.}
 
-\item{psi_damp}{Numeric in (0,1]. Damping factor (specifying the multiplicative factor to decrease IRLS step by when log-likelihood diverges) for dispersion updates to
-stabilize optimization. Default is \code{0.5}.}
+\item{psi_damp}{Numeric in \code{(0, 1]}. Damping factor for dispersion
+updates. Default is \code{1}.}
 
-\item{param_damp}{Numeric in (0,1]. Damping factor (specifying the multiplicative factor to decrease IRWLS step by when log-likelihood diverges) for IRWLS parameter updates
-(applies to all parameters except dispersion). Default is \code{0.2}.}
+\item{param_damp}{Numeric in \code{(0, 1]}. Damping factor for IRWLS
+parameter updates. Default is \code{0.2}.}
 
-\item{seed}{Integer. Random seed used for subsampling.
+\item{seed}{Integer. Random seed used for spot subsampling.
 Default is \code{1}.}
 
-\item{alpha_init}{Optional numeric vector of initial values for slice specific global library size effect.
+\item{alpha_init}{Optional numeric vector of initial values for slice-specific
+global library-size effects. Should have length equal to the number of
+slices. Default is \code{NULL}.}
+
+\item{Beta_init}{Optional list of initial biological spline coefficient
+matrices. Each element should have dimension \code{Kb x G}, where
+\code{Kb} is the number of biological spline basis functions and \code{G}
+is the number of genes. Default is \code{NULL}.}
+
+\item{Gamma_init}{Optional list of initial technical spline coefficient
+matrices. Each element should have dimension \code{Kt x G}, where
+\code{Kt} is the number of technical spline basis functions.
 Default is \code{NULL}.}
 
-\item{Beta_init}{Optional list of initial values for biological coefficients.
-Default is \code{NULL}.}
+\item{Psi_init}{Optional list of initial dispersion vectors. Each element
+should have length \code{G}. Default is \code{NULL}.}
 
-\item{Gamma_init}{Optional list of initial values for technical coefficients.
-Default is \code{NULL}.}
+\item{zeta_init}{Optional numeric vector of initial values for global
+gene-specific intercepts. Should have length \code{G}. Default is
+\code{NULL}.}
 
-\item{Psi_init}{Optional list of initial values for dispersion parameters.
-Default is \code{NULL}.}
+\item{rho_init}{Optional matrix of initial values for slice-deviation contrast
+parameters. Should have dimension \code{(S - 1) x G}, where \code{S} is the
+number of slices and \code{G} is the number of genes. Default is
+\code{NULL}.}
 
-\item{return_fit}{Logical. If TRUE, returns fitted model parameters along with normalized data.
-Defaults is \code{FALSE}}
+\item{A}{Optional sum-to-zero contrast matrix for slice-specific technical
+deviations. Should have dimension \code{S x (S - 1)} and satisfy
+\code{colSums(A) == 0}. If \code{NULL}, a default contrast matrix is
+constructed internally.}
+
+\item{return_fit}{Logical. If \code{TRUE}, returns fitted model parameters
+along with normalized data. Default is \code{FALSE}.}
 }
 \value{
-A list  of SpatialExperiment  containing normalized outputs stored in 'multinorm' and optionally fitted model parameters.
+If \code{return_fit = FALSE}, returns a list of
+  \code{SpatialExperiment} objects with normalized values stored by
+  \code{norm_spe}. If \code{return_fit = TRUE}, returns a list containing:
+  \itemize{
+    \item \code{norm_spe}: normalized \code{SpatialExperiment} objects.
+    \item \code{fit}: fitted model parameters.
+    \item \code{call}: matched function call.
+    \item \code{Eta_full_list}: fitted full linear predictors by slice.
+    \item \code{percentiles}: fitted NB percentiles used for PAC transformation.
+  }
 }
 \description{
-Performs normalization of multislice ST data using
-spatially dependent, spot- and gene-specific size factors.
+Performs normalization of multislice ST data using a negative binomial model
+with spatial biological effects, library-size-associated technical effects,
+and slice-specific technical intercept deviations.
 }
 \details{
-The method fits a negative binomial model with spatially varying effects.
-Biological and technical effects are modeled using thin-plate splines, and
-cross-slice consistency is enforced via niche-level constraints. Parameter
-estimation is performed using iteratively reweighted least squares (IRWLS).
+The method fits a negative binomial model with spatial biological effects,
+library-size-associated technical effects, and slice-specific technical
+intercept deviations. Biological and technical effects are modeled using
+two-dimensional spline bases. Cross-slice biological consistency is encouraged
+through matched niche-level constraints applied only to the biological spline
+component.
+
+The model includes a global gene-specific intercept and a slice-specific
+technical intercept deviation represented using sum-to-zero contrasts. This
+allows slice-level technical shifts not explained by library size to be
+modeled explicitly, while preserving the biological niche-matching constraint
+on the biological component.
+
+Parameter estimation is performed using iteratively reweighted least squares
+(IRWLS), with outer-loop updates for negative binomial dispersion parameters.
 }
 \examples{
 \dontrun{
-# ------------------------------------------------------------
-# Expected input structure
-# spe_list is a list of SpatialExperiment objects (one per slice)
-# Each must contain a 'niche' column in colData
-# ------------------------------------------------------------
-# spe_list <- list(spe_slice1, spe_slice2)
-# colData(spe_list[[1]])$niche <- factor(...)
-
-# ------------------------------------------------------------
-# Basic usage: minimal inputs
-# ------------------------------------------------------------
+# Basic usage
 result <- MultiNorm(
   spe_list,
   niche_col = "niche"
@@ -135,10 +166,7 @@ result <- MultiNorm(
 # Access normalized output
 norm_spe <- result
 
-# ------------------------------------------------------------
-# Adjust sampling and ensure reproducibility
 # Subsample spots for faster fitting
-# ------------------------------------------------------------
 result <- MultiNorm(
   spe_list,
   niche_col = "niche",
@@ -147,9 +175,7 @@ result <- MultiNorm(
   verbose = TRUE
 )
 
-# ------------------------------------------------------------
-# Model tuning: spline flexibility and regularization
-# ------------------------------------------------------------
+# Tune spline flexibility and regularization
 result <- MultiNorm(
   spe_list,
   niche_col = "niche",
@@ -159,26 +185,22 @@ result <- MultiNorm(
   lambda2 = 2.0
 )
 
-# ------------------------------------------------------------
 # Use a subset of niches
-# ------------------------------------------------------------
 result <- MultiNorm(
   spe_list,
   niche_col = "niche",
   preferred_niches = c("A", "B", "C")
 )
 
-# ------------------------------------------------------------
 # Return fitted model parameters
-# ------------------------------------------------------------
 result <- MultiNorm(
   spe_list,
   niche_col = "niche",
   return_fit = TRUE
 )
 
-# Access outputs when return_fit = TRUE
 norm_spe <- result$norm_spe
 fit <- result$fit
 }
+
 }
