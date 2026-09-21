@@ -281,8 +281,8 @@ MultiNorm <- function(
     return(list(
       norm_spe = spe_list_norm,
       fit = fit,
-      call = model_fit$call
-      #Eta_full_list = out$Eta_full_list,
+      call = model_fit$call,
+      Eta_full_list = out$Eta_full_list
       #percentiles = out$percentiles
     ))
   }
