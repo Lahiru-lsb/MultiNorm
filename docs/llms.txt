@@ -1,0 +1,171 @@
+# MultiNorm
+
+**MultiNorm** is an R package for spatially aware normalisation of
+multi-slice spatial transcriptomics (ST) data.
+
+MultiNorm decomposes observed gene expression variation into biological
+and technical components. The method aims to reduce unwanted technical
+variation while preserving biologically meaningful spatial expression
+patterns within and across tissue slices.
+
+It uses pre-identified biological regions, referred to as **niches**, to
+encourage consistency of average biological signals across matched
+regions in different tissue slices.
+
+## Installation
+
+The development version of MultiNorm can be installed directly from
+GitHub:
+
+``` r
+# Install remotes if required
+install.packages("remotes")
+
+# Install MultiNorm
+remotes::install_github("Lahiru-lsb/MultiNorm")
+```
+
+Load the package:
+
+``` r
+library(MultiNorm)
+```
+
+## Input requirements
+
+MultiNorm accepts a named list of `SpatialExperiment` objects, where
+each object represents an individual tissue slice.
+
+Each object should contain:
+
+- A raw gene expression count matrix.
+- Two-dimensional spatial coordinates.
+- Spot-level biological niche annotations.
+- A common set of genes across tissue slices.
+
+Niche annotations should represent biologically comparable regions
+across slices. These annotations can be obtained using spatial
+clustering or integration methods, or from existing biological
+annotations.
+
+## Quick start
+
+``` r
+library(MultiNorm)
+
+# Normalise multiple tissue slices
+norm_spe <- MultiNorm(
+  spe_list = spe_list,
+  niche_col = "niche"
+)
+```
+
+By default, MultiNorm returns a list of normalised `SpatialExperiment`
+objects.
+
+``` r
+# Access the first normalised tissue slice
+norm_slice1 <- norm_spe[[1]]
+
+# Access normalised gene expression
+SummarizedExperiment::logcounts(norm_slice1)
+```
+
+An example with user-specified parameters is shown below:
+
+``` r
+norm_spe <- MultiNorm(
+  spe_list = spe_list,
+  niche_col = "niche",
+  spot_frac = 0.5,
+  df_bio = c(6, 6),
+  df_tech = c(3, 3),
+  lambdaC = 10000,
+  lambda1 = 0.01,
+  lambda2 = 2,
+  seed = 123,
+  verbose = TRUE
+)
+```
+
+## Returning fitted model parameters
+
+Fitted model parameters can be returned together with the normalised
+data by setting `return_fit = TRUE`.
+
+``` r
+result <- MultiNorm(
+  spe_list = spe_list,
+  niche_col = "niche",
+  return_fit = TRUE
+)
+
+norm_spe <- result$norm_spe
+fit <- result$fit
+```
+
+## Vignette
+
+A detailed demonstration of MultiNorm is provided using four human
+dorsolateral prefrontal cortex (DLPFC) tissue slices from the
+`spatialLIBD` package.
+
+The vignette covers:
+
+1.  Downloading and preparing spatial transcriptomics data.
+2.  Performing basic quality control.
+3.  Selecting common highly variable genes.
+4.  Identifying biologically similar niches across slices.
+5.  Applying MultiNorm.
+6.  Comparing library size distributions before and after normalisation.
+
+To access the installed vignette:
+
+``` r
+vignette("MultiNorm", package = "MultiNorm")
+```
+
+## Documentation
+
+For detailed information about the available parameters and returned
+objects, refer to the function documentation:
+
+``` r
+?MultiNorm
+```
+
+## Citation
+
+Citation information can be accessed using:
+
+``` r
+citation("MultiNorm")
+```
+
+## License
+
+MultiNorm is distributed under the GPL-3 license.
+
+## Issues and feedback
+
+For bug reports, feature requests or questions, please open an issue in
+the GitHub repository:
+
+<https://github.com/Lahiru-lsb/MultiNorm/issues>
+
+# Package index
+
+## All functions
+
+- [`MultiNorm()`](https://lahiru-lsb.github.io/MultiNorm/reference/MultiNorm.md)
+  : Normalize multislice spatial transcriptomics (ST) data
+- [`spe_list`](https://lahiru-lsb.github.io/MultiNorm/reference/spe_list.md)
+  : Example multislice SpatialExperiment dataset
+
+# Articles
+
+### All vignettes
+
+- [MultiNorm: Spatially Aware Normalisation of Multi-Slice Spatial
+  Transcriptomics
+  Data](https://lahiru-lsb.github.io/MultiNorm/articles/MultiNorm.md):
