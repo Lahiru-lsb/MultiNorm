@@ -47,12 +47,30 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="multinorm">MultiNorm<a class="anchor" aria-label="anchor" href="#multinorm"></a>
+  <main id="main" class="col-md-9"><div class="page-header"><h1 align="center">
 </h1></div>
+<p>MultiNorm</p>
+
+<p align="center">
+</p>
+<p><strong>Spatially Aware Normalisation of Multi-Slice Spatial Transcriptomics Data</strong></p>
+
+<p align="center">
+</p>
+<p><a href="https://lahiru-lsb.github.io/MultiNorm/"> <img src="https://img.shields.io/badge/Documentation-MultiNorm-007C91" alt="Documentation"></a> <a href="https://github.com/Lahiru-lsb/MultiNorm" class="external-link"> <img src="https://img.shields.io/badge/GitHub-MultiNorm-181717?logo=github" alt="GitHub"></a> <img src="https://img.shields.io/badge/Language-R-276DC3?logo=r" alt="R"><a href="https://www.gnu.org/licenses/gpl-3.0" class="external-link"> <img src="https://img.shields.io/badge/License-GPL--3-blue" alt="License"></a></p>
+
+<p align="center">
+</p>
+<p><a href="https://lahiru-lsb.github.io/MultiNorm/">Website</a> | <a href="#installation">Installation</a> | <a href="#input-requirements">Input requirements</a> | <a href="#quick-start">Quick start</a> | <a href="#vignette">Vignette</a> | <a href="#citation">Citation</a></p>
+
+<hr>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
 <p><strong>MultiNorm</strong> is an R package for spatially aware normalisation of multi-slice spatial transcriptomics (ST) data.</p>
-<p>MultiNorm decomposes observed gene expression variation into biological and technical components. The method aims to reduce unwanted technical variation while preserving biologically meaningful spatial expression patterns within and across tissue slices.</p>
+<p>MultiNorm decomposes observed gene expression variation into biological and technical components. The method aims to reduce unwanted technical variation while preserving biologically meaningful expression patterns and variations within and across tissue slices.</p>
 <p>It uses pre-identified biological regions, referred to as <strong>niches</strong>, to encourage consistency of average biological signals across matched regions in different tissue slices.</p>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -70,15 +88,15 @@
 <div class="section level2">
 <h2 id="input-requirements">Input requirements<a class="anchor" aria-label="anchor" href="#input-requirements"></a>
 </h2>
-<p>MultiNorm accepts a named list of <code>SpatialExperiment</code> objects, where each object represents an individual tissue slice.</p>
+<p>MultiNorm accepts a named list of <code>SpatialExperiment</code> objects, where each object represents an individual tissue slice. The <code>spe_list</code> must be arranged according to the spatial order of the tissue slices.</p>
 <p>Each object should contain:</p>
 <ul>
 <li>A raw gene expression count matrix.</li>
-<li>Two-dimensional spatial coordinates.</li>
+<li>Two-dimensional spatial coordinates stored in the <code>spatialCoords</code> slot.</li>
 <li>Spot-level biological niche annotations.</li>
 <li>A common set of genes across tissue slices.</li>
 </ul>
-<p>Niche annotations should represent biologically comparable regions across slices. These annotations can be obtained using spatial clustering or integration methods, or from existing biological annotations.</p>
+<p>Niche annotations should represent biologically comparable regions across slices. These annotations can be obtained using spatial clustering methods or from existing biological annotations.</p>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
@@ -97,7 +115,7 @@
 <span><span class="va">norm_slice1</span> <span class="op">&lt;-</span> <span class="va">norm_spe</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span></span>
 <span><span class="co"># Access normalised gene expression</span></span>
-<span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu">logcounts</span><span class="op">(</span><span class="va">norm_slice1</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">SummarizedExperiment</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">norm_slice1</span>, <span class="st">"logcounts"</span><span class="op">)</span></span></code></pre></div>
 <p>An example with user-specified parameters is shown below:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">norm_spe</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/MultiNorm.html">MultiNorm</a></span><span class="op">(</span></span>
@@ -143,10 +161,13 @@
 <p>To access the installed vignette:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"MultiNorm"</span>, package <span class="op">=</span> <span class="st">"MultiNorm"</span><span class="op">)</span></span></code></pre></div>
+<p>The vignette is also available through the <a href="https://lahiru-lsb.github.io/MultiNorm/">MultiNorm documentation website</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
+<p>The official MultiNorm documentation website provides function references, tutorials and usage examples.</p>
+<p><strong>Website:</strong> <a href="https://lahiru-lsb.github.io/MultiNorm/" class="uri">https://lahiru-lsb.github.io/MultiNorm/</a></p>
 <p>For detailed information about the available parameters and returned objects, refer to the function documentation:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="op">?</span><span class="va">MultiNorm</span></span></code></pre></div>
@@ -168,8 +189,13 @@
 </h2>
 <p>For bug reports, feature requests or questions, please open an issue in the GitHub repository:</p>
 <p><a href="https://github.com/Lahiru-lsb/MultiNorm/issues" class="external-link uri">https://github.com/Lahiru-lsb/MultiNorm/issues</a></p>
+<hr>
+<p align="center">
+</p>
+<p><strong>MultiNorm</strong><br> Spatially aware normalisation for multi-slice spatial transcriptomics.</p>
+
 </div>
-</div>
+
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">

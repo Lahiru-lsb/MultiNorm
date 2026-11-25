@@ -1,12 +1,31 @@
-# MultiNorm
+# 
+
+MultiNorm
+
+**Spatially Aware Normalisation of Multi-Slice Spatial Transcriptomics
+Data**
+
+[![Documentation](https://img.shields.io/badge/Documentation-MultiNorm-007C91)](https://lahiru-lsb.github.io/MultiNorm/)
+[![GitHub](https://img.shields.io/badge/GitHub-MultiNorm-181717?logo=github)](https://github.com/Lahiru-lsb/MultiNorm)
+![R](https://img.shields.io/badge/Language-R-276DC3?logo=r)
+[![License](https://img.shields.io/badge/License-GPL--3-blue)](https://www.gnu.org/licenses/gpl-3.0)
+
+[Website](https://lahiru-lsb.github.io/MultiNorm/) \|
+[Installation](#installation) \| [Input
+requirements](#input-requirements) \| [Quick start](#quick-start) \|
+[Vignette](#vignette) \| [Citation](#citation)
+
+------------------------------------------------------------------------
+
+## Overview
 
 **MultiNorm** is an R package for spatially aware normalisation of
 multi-slice spatial transcriptomics (ST) data.
 
 MultiNorm decomposes observed gene expression variation into biological
 and technical components. The method aims to reduce unwanted technical
-variation while preserving biologically meaningful spatial expression
-patterns within and across tissue slices.
+variation while preserving biologically meaningful expression patterns
+and variations within and across tissue slices.
 
 It uses pre-identified biological regions, referred to as **niches**, to
 encourage consistency of average biological signals across matched
@@ -34,19 +53,20 @@ library(MultiNorm)
 ## Input requirements
 
 MultiNorm accepts a named list of `SpatialExperiment` objects, where
-each object represents an individual tissue slice.
+each object represents an individual tissue slice. The `spe_list` must
+be arranged according to the spatial order of the tissue slices.
 
 Each object should contain:
 
 - A raw gene expression count matrix.
-- Two-dimensional spatial coordinates.
+- Two-dimensional spatial coordinates stored in the `spatialCoords`
+  slot.
 - Spot-level biological niche annotations.
 - A common set of genes across tissue slices.
 
 Niche annotations should represent biologically comparable regions
 across slices. These annotations can be obtained using spatial
-clustering or integration methods, or from existing biological
-annotations.
+clustering methods or from existing biological annotations.
 
 ## Quick start
 
@@ -68,7 +88,7 @@ objects.
 norm_slice1 <- norm_spe[[1]]
 
 # Access normalised gene expression
-SummarizedExperiment::logcounts(norm_slice1)
+SummarizedExperiment::assay(norm_slice1, "logcounts")
 ```
 
 An example with user-specified parameters is shown below:
@@ -125,7 +145,15 @@ To access the installed vignette:
 vignette("MultiNorm", package = "MultiNorm")
 ```
 
+The vignette is also available through the [MultiNorm documentation
+website](https://lahiru-lsb.github.io/MultiNorm/).
+
 ## Documentation
+
+The official MultiNorm documentation website provides function
+references, tutorials and usage examples.
+
+**Website:** <https://lahiru-lsb.github.io/MultiNorm/>
 
 For detailed information about the available parameters and returned
 objects, refer to the function documentation:
@@ -152,3 +180,8 @@ For bug reports, feature requests or questions, please open an issue in
 the GitHub repository:
 
 <https://github.com/Lahiru-lsb/MultiNorm/issues>
+
+------------------------------------------------------------------------
+
+**MultiNorm**  
+Spatially aware normalisation for multi-slice spatial transcriptomics.

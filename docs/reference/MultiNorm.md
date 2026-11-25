@@ -1,8 +1,9 @@
 # Normalize multislice spatial transcriptomics (ST) data
 
 Performs normalization of multislice ST data using a negative binomial
-model with spatial biological effects, library-size-associated technical
-effects, and slice-specific technical intercept deviations.
+model. The method aims to reduce unwanted technical variation while
+preserving biologically meaningful spatial expression patterns and
+variations within and across tissue slices.
 
 ## Usage
 

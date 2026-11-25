@@ -113,7 +113,7 @@ library(SpatialExperiment)
 
 # Download the DLPFC dataset
 spe <- spatialLIBD::fetch_data(type = "spe")
-#> 2026-11-25 12:18:47.453336 loading file /home/wboyagoda/.cache/R/BiocFileCache/1a0444ceef1df_Human_DLPFC_Visium_processedData_sce_scran_spatialLIBD.Rdata%3Fdl%3D1
+#> 2026-11-26 08:25:09.395907 loading file /home/wboyagoda/.cache/R/BiocFileCache/1a0444ceef1df_Human_DLPFC_Visium_processedData_sce_scran_spatialLIBD.Rdata%3Fdl%3D1
 
 # Inspect the dataset
 spe
@@ -146,7 +146,8 @@ table(spe$sample_id)
 ### Preparing individual tissue slices
 
 MultiNorm accepts a named list of SpatialExperiment objects, where each
-object represents an individual tissue slice.
+object represents an individual tissue slice.The spe_list must be
+arranged according to the spatial order of the tissue slices.
 
 For this demonstration, we select four tissue slices from the DLPFC
 dataset and split the combined SpatialExperiment object into individual
@@ -536,7 +537,7 @@ spe_list_hvg = run_niche_mnn(spe_list_hvg)
 #> spe_151510 cluster number: 99
 #> spe_151510 merged cluster number: 38
 #> Elasped Time:
-#> 11.3 secs
+#> 10.4 secs
 #> Warning: Data is of class matrix. Coercing to dgCMatrix.
 #> Normalizing layer: counts
 ```
@@ -638,46 +639,46 @@ dlpfc_norm = MultiNorm(
 #> 
 #> === Outer iteration 1 ===
 #> Step halved 1 times
-#> Iter 1 | log-likelihood: -6026593.91 | Mu range: [0.61, 153.57]
-#> Iter 2 | log-likelihood: -5118559.73 | Mu range: [0.36, 140.56]
-#> Iter 3 | log-likelihood: -4527674.53 | Mu range: [0.21, 129.76]
-#> Iter 4 | log-likelihood: -4090334.53 | Mu range: [0.13, 123.41]
-#> Iter 5 | log-likelihood: -3757674.77 | Mu range: [0.08, 117.96]
-#> Iter 6 | log-likelihood: -3502085.76 | Mu range: [0.05, 113.47]
-#> Iter 7 | log-likelihood: -3304998.68 | Mu range: [0.04, 109.89]
-#> Iter 8 | log-likelihood: -3152951.25 | Mu range: [0.02, 107.12]
-#> Iter 9 | log-likelihood: -3035812.98 | Mu range: [0.02, 105.06]
-#> Iter 10 | log-likelihood: -2945810.59 | Mu range: [0.01, 103.59]
-#> Iter 11 | log-likelihood: -2876918.50 | Mu range: [0.01, 102.96]
-#> Iter 12 | log-likelihood: -2824442.75 | Mu range: [0.01, 106.80]
-#> Iter 13 | log-likelihood: -2784719.94 | Mu range: [0.00, 110.59]
-#> Iter 14 | log-likelihood: -2754891.16 | Mu range: [0.00, 114.29]
-#> Iter 15 | log-likelihood: -2732728.08 | Mu range: [0.00, 117.86]
-#> Iter 16 | log-likelihood: -2716497.42 | Mu range: [0.00, 121.26]
-#> Iter 17 | log-likelihood: -2704854.37 | Mu range: [0.00, 124.46]
-#> Iter 18 | log-likelihood: -2696758.41 | Mu range: [0.00, 127.44]
-#> Iter 19 | log-likelihood: -2691406.79 | Mu range: [0.00, 130.17]
-#> Iter 20 | log-likelihood: -2688181.89 | Mu range: [0.00, 132.65]
-#> Iter 21 | log-likelihood: -2686609.66 | Mu range: [0.00, 134.88]
-#> Iter 22 | log-likelihood: -2686326.92 | Mu range: [0.00, 136.87]
-#> Iter 23 | log-likelihood: -2686326.92 | Mu range: [0.00, 136.87]
+#> Iter 1 | log-likelihood: -6026593.91
+#> Iter 2 | log-likelihood: -5118559.73
+#> Iter 3 | log-likelihood: -4527674.53
+#> Iter 4 | log-likelihood: -4090334.53
+#> Iter 5 | log-likelihood: -3757674.77
+#> Iter 6 | log-likelihood: -3502085.76
+#> Iter 7 | log-likelihood: -3304998.68
+#> Iter 8 | log-likelihood: -3152951.25
+#> Iter 9 | log-likelihood: -3035812.98
+#> Iter 10 | log-likelihood: -2945810.59
+#> Iter 11 | log-likelihood: -2876918.50
+#> Iter 12 | log-likelihood: -2824442.75
+#> Iter 13 | log-likelihood: -2784719.94
+#> Iter 14 | log-likelihood: -2754891.16
+#> Iter 15 | log-likelihood: -2732728.08
+#> Iter 16 | log-likelihood: -2716497.42
+#> Iter 17 | log-likelihood: -2704854.37
+#> Iter 18 | log-likelihood: -2696758.41
+#> Iter 19 | log-likelihood: -2691406.79
+#> Iter 20 | log-likelihood: -2688181.89
+#> Iter 21 | log-likelihood: -2686609.66
+#> Iter 22 | log-likelihood: -2686326.92
+#> Iter 23 | log-likelihood: -2686326.92
 #> Converged at iteration 23
 #> log-likelihood = -2671669 
 #> 
 #> === Outer iteration 2 ===
-#> Iter 1 | log-likelihood: -2670255.51 | Mu range: [0.00, 138.45]
-#> Iter 2 | log-likelihood: -2669807.41 | Mu range: [0.00, 139.98]
-#> Iter 3 | log-likelihood: -2669807.41 | Mu range: [0.00, 139.98]
+#> Iter 1 | log-likelihood: -2670255.51
+#> Iter 2 | log-likelihood: -2669807.41
+#> Iter 3 | log-likelihood: -2669807.41
 #> Converged at iteration 3
 #> log-likelihood = -2666100 
 #> 
 #> === Outer iteration 3 ===
-#> Iter 1 | log-likelihood: -2666100.38 | Mu range: [0.00, 139.98]
-#> Iter 2 | log-likelihood: -2666100.38 | Mu range: [0.00, 139.98]
+#> Iter 1 | log-likelihood: -2666100.38
+#> Iter 2 | log-likelihood: -2666100.38
 #> Converged at iteration 2
 #> log-likelihood = -2666100 
 #> Converged at outer iteration 3
-#> Total runtime (mins): 0.79
+#> Total runtime (mins): 0.7
 ```
 
 The main arguments used in this demonstration are:

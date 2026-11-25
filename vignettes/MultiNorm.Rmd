@@ -65,7 +65,7 @@ table(spe$sample_id)
 ## Preparing individual tissue slices
 
 MultiNorm accepts a named list of SpatialExperiment objects,
-where each object represents an individual tissue slice.
+where each object represents an individual tissue slice.The spe_list must be arranged according to the spatial order of the tissue slices.
 
 For this demonstration, we select four tissue slices from
 the DLPFC dataset and split the combined SpatialExperiment

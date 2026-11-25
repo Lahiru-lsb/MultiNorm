@@ -167,7 +167,7 @@ SpatialExperiment object.</p>
 <span></span>
 <span><span class="co"># Download the DLPFC dataset</span></span>
 <span><span class="va">spe</span> <span class="op">&lt;-</span> <span class="fu">spatialLIBD</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/spatialLIBD/man/fetch_data.html" class="external-link">fetch_data</a></span><span class="op">(</span>type <span class="op">=</span> <span class="st">"spe"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; 2026-11-25 12:18:47.453336 loading file /home/wboyagoda/.cache/R/BiocFileCache/1a0444ceef1df_Human_DLPFC_Visium_processedData_sce_scran_spatialLIBD.Rdata%3Fdl%3D1</span></span>
+<span><span class="co">#&gt; 2026-11-26 08:25:09.395907 loading file /home/wboyagoda/.cache/R/BiocFileCache/1a0444ceef1df_Human_DLPFC_Visium_processedData_sce_scran_spatialLIBD.Rdata%3Fdl%3D1</span></span>
 <span></span>
 <span><span class="co"># Inspect the dataset</span></span>
 <span><span class="va">spe</span></span>
@@ -200,7 +200,8 @@ SpatialExperiment object.</p>
 <h3 id="preparing-individual-tissue-slices">Preparing individual tissue slices<a class="anchor" aria-label="anchor" href="#preparing-individual-tissue-slices"></a>
 </h3>
 <p>MultiNorm accepts a named list of SpatialExperiment objects, where
-each object represents an individual tissue slice.</p>
+each object represents an individual tissue slice.The spe_list must be
+arranged according to the spatial order of the tissue slices.</p>
 <p>For this demonstration, we select four tissue slices from the DLPFC
 dataset and split the combined SpatialExperiment object into individual
 objects.</p>
@@ -578,7 +579,7 @@ across the four tissue slices.</p>
 <span><span class="co">#&gt; spe_151510 cluster number: 99</span></span>
 <span><span class="co">#&gt; spe_151510 merged cluster number: 38</span></span>
 <span><span class="co">#&gt; Elasped Time:</span></span>
-<span><span class="co">#&gt; 11.3 secs</span></span>
+<span><span class="co">#&gt; 10.4 secs</span></span>
 <span><span class="co">#&gt; Warning: Data is of class matrix. Coercing to dgCMatrix.</span></span>
 <span><span class="co">#&gt; Normalizing layer: counts</span></span></code></pre></div>
 <p>Spots without assigned niche annotations are removed before applying
@@ -671,46 +672,46 @@ annotations.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; === Outer iteration 1 ===</span></span>
 <span><span class="co">#&gt; Step halved 1 times</span></span>
-<span><span class="co">#&gt; Iter 1 | log-likelihood: -6026593.91 | Mu range: [0.61, 153.57]</span></span>
-<span><span class="co">#&gt; Iter 2 | log-likelihood: -5118559.73 | Mu range: [0.36, 140.56]</span></span>
-<span><span class="co">#&gt; Iter 3 | log-likelihood: -4527674.53 | Mu range: [0.21, 129.76]</span></span>
-<span><span class="co">#&gt; Iter 4 | log-likelihood: -4090334.53 | Mu range: [0.13, 123.41]</span></span>
-<span><span class="co">#&gt; Iter 5 | log-likelihood: -3757674.77 | Mu range: [0.08, 117.96]</span></span>
-<span><span class="co">#&gt; Iter 6 | log-likelihood: -3502085.76 | Mu range: [0.05, 113.47]</span></span>
-<span><span class="co">#&gt; Iter 7 | log-likelihood: -3304998.68 | Mu range: [0.04, 109.89]</span></span>
-<span><span class="co">#&gt; Iter 8 | log-likelihood: -3152951.25 | Mu range: [0.02, 107.12]</span></span>
-<span><span class="co">#&gt; Iter 9 | log-likelihood: -3035812.98 | Mu range: [0.02, 105.06]</span></span>
-<span><span class="co">#&gt; Iter 10 | log-likelihood: -2945810.59 | Mu range: [0.01, 103.59]</span></span>
-<span><span class="co">#&gt; Iter 11 | log-likelihood: -2876918.50 | Mu range: [0.01, 102.96]</span></span>
-<span><span class="co">#&gt; Iter 12 | log-likelihood: -2824442.75 | Mu range: [0.01, 106.80]</span></span>
-<span><span class="co">#&gt; Iter 13 | log-likelihood: -2784719.94 | Mu range: [0.00, 110.59]</span></span>
-<span><span class="co">#&gt; Iter 14 | log-likelihood: -2754891.16 | Mu range: [0.00, 114.29]</span></span>
-<span><span class="co">#&gt; Iter 15 | log-likelihood: -2732728.08 | Mu range: [0.00, 117.86]</span></span>
-<span><span class="co">#&gt; Iter 16 | log-likelihood: -2716497.42 | Mu range: [0.00, 121.26]</span></span>
-<span><span class="co">#&gt; Iter 17 | log-likelihood: -2704854.37 | Mu range: [0.00, 124.46]</span></span>
-<span><span class="co">#&gt; Iter 18 | log-likelihood: -2696758.41 | Mu range: [0.00, 127.44]</span></span>
-<span><span class="co">#&gt; Iter 19 | log-likelihood: -2691406.79 | Mu range: [0.00, 130.17]</span></span>
-<span><span class="co">#&gt; Iter 20 | log-likelihood: -2688181.89 | Mu range: [0.00, 132.65]</span></span>
-<span><span class="co">#&gt; Iter 21 | log-likelihood: -2686609.66 | Mu range: [0.00, 134.88]</span></span>
-<span><span class="co">#&gt; Iter 22 | log-likelihood: -2686326.92 | Mu range: [0.00, 136.87]</span></span>
-<span><span class="co">#&gt; Iter 23 | log-likelihood: -2686326.92 | Mu range: [0.00, 136.87]</span></span>
+<span><span class="co">#&gt; Iter 1 | log-likelihood: -6026593.91</span></span>
+<span><span class="co">#&gt; Iter 2 | log-likelihood: -5118559.73</span></span>
+<span><span class="co">#&gt; Iter 3 | log-likelihood: -4527674.53</span></span>
+<span><span class="co">#&gt; Iter 4 | log-likelihood: -4090334.53</span></span>
+<span><span class="co">#&gt; Iter 5 | log-likelihood: -3757674.77</span></span>
+<span><span class="co">#&gt; Iter 6 | log-likelihood: -3502085.76</span></span>
+<span><span class="co">#&gt; Iter 7 | log-likelihood: -3304998.68</span></span>
+<span><span class="co">#&gt; Iter 8 | log-likelihood: -3152951.25</span></span>
+<span><span class="co">#&gt; Iter 9 | log-likelihood: -3035812.98</span></span>
+<span><span class="co">#&gt; Iter 10 | log-likelihood: -2945810.59</span></span>
+<span><span class="co">#&gt; Iter 11 | log-likelihood: -2876918.50</span></span>
+<span><span class="co">#&gt; Iter 12 | log-likelihood: -2824442.75</span></span>
+<span><span class="co">#&gt; Iter 13 | log-likelihood: -2784719.94</span></span>
+<span><span class="co">#&gt; Iter 14 | log-likelihood: -2754891.16</span></span>
+<span><span class="co">#&gt; Iter 15 | log-likelihood: -2732728.08</span></span>
+<span><span class="co">#&gt; Iter 16 | log-likelihood: -2716497.42</span></span>
+<span><span class="co">#&gt; Iter 17 | log-likelihood: -2704854.37</span></span>
+<span><span class="co">#&gt; Iter 18 | log-likelihood: -2696758.41</span></span>
+<span><span class="co">#&gt; Iter 19 | log-likelihood: -2691406.79</span></span>
+<span><span class="co">#&gt; Iter 20 | log-likelihood: -2688181.89</span></span>
+<span><span class="co">#&gt; Iter 21 | log-likelihood: -2686609.66</span></span>
+<span><span class="co">#&gt; Iter 22 | log-likelihood: -2686326.92</span></span>
+<span><span class="co">#&gt; Iter 23 | log-likelihood: -2686326.92</span></span>
 <span><span class="co">#&gt; Converged at iteration 23</span></span>
 <span><span class="co">#&gt; log-likelihood = -2671669 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; === Outer iteration 2 ===</span></span>
-<span><span class="co">#&gt; Iter 1 | log-likelihood: -2670255.51 | Mu range: [0.00, 138.45]</span></span>
-<span><span class="co">#&gt; Iter 2 | log-likelihood: -2669807.41 | Mu range: [0.00, 139.98]</span></span>
-<span><span class="co">#&gt; Iter 3 | log-likelihood: -2669807.41 | Mu range: [0.00, 139.98]</span></span>
+<span><span class="co">#&gt; Iter 1 | log-likelihood: -2670255.51</span></span>
+<span><span class="co">#&gt; Iter 2 | log-likelihood: -2669807.41</span></span>
+<span><span class="co">#&gt; Iter 3 | log-likelihood: -2669807.41</span></span>
 <span><span class="co">#&gt; Converged at iteration 3</span></span>
 <span><span class="co">#&gt; log-likelihood = -2666100 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; === Outer iteration 3 ===</span></span>
-<span><span class="co">#&gt; Iter 1 | log-likelihood: -2666100.38 | Mu range: [0.00, 139.98]</span></span>
-<span><span class="co">#&gt; Iter 2 | log-likelihood: -2666100.38 | Mu range: [0.00, 139.98]</span></span>
+<span><span class="co">#&gt; Iter 1 | log-likelihood: -2666100.38</span></span>
+<span><span class="co">#&gt; Iter 2 | log-likelihood: -2666100.38</span></span>
 <span><span class="co">#&gt; Converged at iteration 2</span></span>
 <span><span class="co">#&gt; log-likelihood = -2666100 </span></span>
 <span><span class="co">#&gt; Converged at outer iteration 3</span></span>
-<span><span class="co">#&gt; Total runtime (mins): 0.79</span></span></code></pre></div>
+<span><span class="co">#&gt; Total runtime (mins): 0.7</span></span></code></pre></div>
 <p>The main arguments used in this demonstration are:</p>
 <ul>
 <li><p><code>spe_list_hvg</code>: A named list of SpatialExperiment
