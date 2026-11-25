@@ -253,9 +253,14 @@ irwls_multislice_backfit <- function(
     Mu <- Mu_best
     ll_new <- ll_best
 
+    # message(sprintf(
+    #   "Iter %d | log-likelihood: %.2f | Mu range: [%.2f, %.2f]",
+    #   iter, ll_new, min(Mu), max(Mu)
+    # ))
+
     message(sprintf(
-      "Iter %d | log-likelihood: %.2f | Mu range: [%.2f, %.2f]",
-      iter, ll_new, min(Mu), max(Mu)
+      "Iter %d | log-likelihood: %.2f ",
+      iter, ll_new
     ))
 
     if (iter > 1 && abs(ll_new - ll_old) / abs(ll_old) < tol_param) {

@@ -1,8 +1,34 @@
-# MultiNorm
+<h1 align="center">
+
+MultiNorm
+
+</h1>
+
+<p align="center">
+
+<strong>Spatially Aware Normalisation of Multi-Slice Spatial Transcriptomics Data</strong>
+
+</p>
+
+<p align="center">
+
+<a href="https://lahiru-lsb.github.io/MultiNorm/"> <img src="https://img.shields.io/badge/Documentation-MultiNorm-007C91" alt="Documentation"/> </a> <a href="https://github.com/Lahiru-lsb/MultiNorm"> <img src="https://img.shields.io/badge/GitHub-MultiNorm-181717?logo=github" alt="GitHub"/> </a> <img src="https://img.shields.io/badge/Language-R-276DC3?logo=r" alt="R"/> <a href="https://www.gnu.org/licenses/gpl-3.0"> <img src="https://img.shields.io/badge/License-GPL--3-blue" alt="License"/> </a>
+
+</p>
+
+<p align="center">
+
+<a href="https://lahiru-lsb.github.io/MultiNorm/">Website</a> \| <a href="#installation">Installation</a> \| <a href="#input-requirements">Input requirements</a> \| <a href="#quick-start">Quick start</a> \| <a href="#vignette">Vignette</a> \| <a href="#citation">Citation</a>
+
+</p>
+
+------------------------------------------------------------------------
+
+## Overview
 
 **MultiNorm** is an R package for spatially aware normalisation of multi-slice spatial transcriptomics (ST) data.
 
-MultiNorm decomposes observed gene expression variation into biological and technical components. The method aims to reduce unwanted technical variation while preserving biologically meaningful spatial expression patterns within and across tissue slices.
+MultiNorm decomposes observed gene expression variation into biological and technical components. The method aims to reduce unwanted technical variation while preserving biologically meaningful expression patterns and variations within and across tissue slices.
 
 It uses pre-identified biological regions, referred to as **niches**, to encourage consistency of average biological signals across matched regions in different tissue slices.
 
@@ -26,16 +52,16 @@ library(MultiNorm)
 
 ## Input requirements
 
-MultiNorm accepts a named list of `SpatialExperiment` objects, where each object represents an individual tissue slice.
+MultiNorm accepts a named list of `SpatialExperiment` objects, where each object represents an individual tissue slice. The `spe_list` must be arranged according to the spatial order of the tissue slices.
 
 Each object should contain:
 
 -   A raw gene expression count matrix.
--   Two-dimensional spatial coordinates.
+-   Two-dimensional spatial coordinates stored in the `spatialCoords` slot.
 -   Spot-level biological niche annotations.
 -   A common set of genes across tissue slices.
 
-Niche annotations should represent biologically comparable regions across slices. These annotations can be obtained using spatial clustering or integration methods, or from existing biological annotations.
+Niche annotations should represent biologically comparable regions across slices. These annotations can be obtained using spatial clustering methods or from existing biological annotations.
 
 ## Quick start
 
@@ -56,7 +82,7 @@ By default, MultiNorm returns a list of normalised `SpatialExperiment` objects.
 norm_slice1 <- norm_spe[[1]]
 
 # Access normalised gene expression
-SummarizedExperiment::logcounts(norm_slice1)
+SummarizedExperiment::assay(norm_slice1, "logcounts")
 ```
 
 An example with user-specified parameters is shown below:
@@ -110,7 +136,13 @@ To access the installed vignette:
 vignette("MultiNorm", package = "MultiNorm")
 ```
 
+The vignette is also available through the [MultiNorm documentation website](https://lahiru-lsb.github.io/MultiNorm/).
+
 ## Documentation
+
+The official MultiNorm documentation website provides function references, tutorials and usage examples.
+
+**Website:** <https://lahiru-lsb.github.io/MultiNorm/>
 
 For detailed information about the available parameters and returned objects, refer to the function documentation:
 
@@ -135,3 +167,11 @@ MultiNorm is distributed under the GPL-3 license.
 For bug reports, feature requests or questions, please open an issue in the GitHub repository:
 
 <https://github.com/Lahiru-lsb/MultiNorm/issues>
+
+------------------------------------------------------------------------
+
+<p align="center">
+
+<strong>MultiNorm</strong><br> Spatially aware normalisation for multi-slice spatial transcriptomics.
+
+</p>

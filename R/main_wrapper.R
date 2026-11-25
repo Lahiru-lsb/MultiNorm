@@ -1,8 +1,8 @@
 #' Normalize multislice spatial transcriptomics (ST) data
 #'
-#' Performs normalization of multislice ST data using a negative binomial model
-#' with spatial biological effects, library-size-associated technical effects,
-#' and slice-specific technical intercept deviations.
+#' Performs normalization of multislice ST data using a negative binomial model.
+#' The method aims to reduce unwanted technical variation while preserving biologically
+#' meaningful spatial expression patterns and variations within and across tissue slices.
 #'
 #' @param spe_list List of \code{SpatialExperiment} objects, one per slice.
 #'   Each object must contain a column with spot-level niche annotations.
@@ -282,8 +282,8 @@ MultiNorm <- function(
       norm_spe = spe_list_norm,
       fit = fit,
       call = model_fit$call,
-      Eta_full_list = out$Eta_full_list
-      #percentiles = out$percentiles
+      Eta_full_list = out$Eta_full_list,
+      percentiles = out$percentiles
     ))
   }
 

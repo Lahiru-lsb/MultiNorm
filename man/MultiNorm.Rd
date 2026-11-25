@@ -134,9 +134,9 @@ If \code{return_fit = FALSE}, returns a list of
   }
 }
 \description{
-Performs normalization of multislice ST data using a negative binomial model
-with spatial biological effects, library-size-associated technical effects,
-and slice-specific technical intercept deviations.
+Performs normalization of multislice ST data using a negative binomial model.
+The method aims to reduce unwanted technical variation while preserving biologically
+meaningful spatial expression patterns and variations within and across tissue slices.
 }
 \details{
 The method fits a negative binomial model with spatial biological effects,
