@@ -1,0 +1,533 @@
+---
+title: "MultiNorm: Spatially Aware Normalisation of Multi-Slice Spatial Transcriptomics Data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MultiNorm: Spatially Aware Normalisation of Multi-Slice Spatial Transcriptomics Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(MultiNorm)
+```
+
+# Introduction
+
+MultiNorm is a spatially aware normalisation method developed for
+multi-slice spatial transcriptomics data. The method accounts for
+unwanted variation within and between tissue slices while aiming
+to preserve biologically meaningful spatial expression patterns and signals.
+
+In this vignette, we demonstrate the application of MultiNorm
+using four human dorsolateral prefrontal cortex (DLPFC) tissue
+slices available through the `spatialLIBD` package.
+
+# Data preparation
+
+## Downloading the example dataset
+
+The DLPFC dataset contains spatial transcriptomics data generated
+using the 10x Genomics Visium platform.
+
+The required packages can be installed through Bioconductor.
+
+```{r installation, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+
+BiocManager::install(c("spatialLIBD", "SpatialExperiment"))
+```
+
+We first load the required packages and download the dataset
+as a SpatialExperiment object.
+
+```{r download-data}
+library(spatialLIBD)
+library(SpatialExperiment)
+
+# Download the DLPFC dataset
+spe <- spatialLIBD::fetch_data(type = "spe")
+
+# Inspect the dataset
+spe
+
+# Examine the number of spots in each tissue slice
+table(spe$sample_id)
+```
+
+## Preparing individual tissue slices
+
+MultiNorm accepts a named list of SpatialExperiment objects,
+where each object represents an individual tissue slice.
+
+For this demonstration, we select four tissue slices from
+the DLPFC dataset and split the combined SpatialExperiment
+object into individual objects.
+
+```{r prepare-slices}
+# Select four tissue slices
+sample_ids = 151507:151510
+
+# Split the combined SpatialExperiment object into individual slices
+spe_list <- setNames(
+  lapply(sample_ids, function(id) {
+    spe[, spe$sample_id == id]
+  }),
+  sample_ids
+)
+
+# Inspect the dimensions of each tissue slice
+lapply(spe_list, dim)
+```
+
+# Data preprocessing
+
+## Quality control
+
+Although more comprehensive quality control procedures can be
+applied depending on the characteristics of the dataset, we
+perform minimal quality control for demonstration purposes.
+
+Specifically, we remove spots with zero total counts and genes
+that are not expressed in any of the selected tissue slices.
+
+```{r quality-control}
+# Remove spots with zero total counts independently from each slice
+spe_list_qc <- lapply(spe_list, function(spe) {
+  spe[, colSums(counts(spe)) > 0]
+})
+
+# Combine count matrices across all tissue slices
+combined_counts <- do.call(cbind, lapply(spe_list_qc, counts))
+
+# Identify genes expressed in at least one spot across all slices
+keep_genes <- rowSums(combined_counts) > 0
+
+# Retain the same set of expressed genes in all slices
+spe_list_qc <- lapply(spe_list_qc, function(spe) {
+  spe[keep_genes, ]
+})
+
+# Inspect the dimensions before and after quality control
+lapply(spe_list, dim)
+lapply(spe_list_qc, dim)
+```
+
+## Selection of highly variable genes
+
+To reduce computational requirements for this demonstration,
+we restrict the analysis to a subset of highly variable genes
+(HVGs).
+
+The top 2,000 HVGs are identified independently for each tissue
+slice using the `scran` package. We subsequently retain the
+intersection of these gene sets to ensure that all tissue slices
+contain a common set of highly variable genes.
+
+Log-normalisation is performed temporarily for HVG selection.
+The original raw counts are retained for the subsequent
+application of MultiNorm.
+
+```{r hvg-selection}
+library(scran)
+library(scuttle)
+library(SpatialExperiment)
+
+# Identify the top 2,000 HVGs independently for each slice
+hvg_list <- lapply(spe_list_qc, function(spe) {
+
+  # Temporarily log-normalise counts for HVG selection
+  spe <- scuttle::logNormCounts(spe)
+
+  # Model gene-level expression variance
+  dec <- scran::modelGeneVar(spe)
+
+  # Select the top 2,000 highly variable genes
+  scran::getTopHVGs(dec, n = 2000)
+})
+
+# Identify HVGs shared across all tissue slices
+common_hvgs <- Reduce(intersect, hvg_list)
+
+# Examine the number of shared HVGs
+length(common_hvgs)
+
+# Retain the common HVGs in each tissue slice
+spe_list_hvg <- lapply(spe_list_qc, function(spe) {
+  spe[common_hvgs, ]
+})
+
+# Inspect the dimensions after HVG selection
+lapply(spe_list_hvg, dim)
+```
+
+Note that HVG selection is performed here to reduce the
+computational requirements of the demonstration. Users may
+choose a different set of genes depending on their analytical
+objectives.
+
+# Identification of biologically similar regions
+
+MultiNorm utilises information from biologically similar regions
+across tissue slices to help distinguish unwanted variation
+from genuine biological differences.
+
+These regions can be identified using existing spatial clustering
+or integration methods, such as spatialMNN, BANKSY with
+appropriate cross-slice cluster matching, or other suitable
+methods.
+
+Alternatively, users may provide existing biological annotations,
+such as cell-type labels or manually annotated anatomical regions,
+when available.
+
+In this demonstration, we use the spatialMNN method to identify biologically similar
+regions, referred to here as niches, across the four DLPFC slices.
+
+## Spatial niche identification
+
+The following helper function converts the SpatialExperiment
+objects into Seurat objects, identifies spatial clusters within
+individual tissue slices, matches biologically similar clusters
+across slices, and transfers the resulting niche annotations
+back to the original SpatialExperiment objects.
+
+```{r niche-identification-function}
+library(SpatialExperiment)
+library(atlasClustering)
+library(stringr)
+library(Seurat)
+
+run_niche_mnn <- function(spe_list,r1=1,r2=0.5) {
+
+  # Clean spot-level metadata and remove duplicated gene identifiers
+
+  spe_list <- lapply(spe_list, function(x) {
+    cd <- colData(x)
+
+    if ("X" %in% colnames(cd)) {
+      colnames(cd)[colnames(cd) == "X"] <- "index"
+      colData(x) <- cd
+    }
+
+    x <- x[!duplicated(rownames(x)), ]
+    return(x)
+  })
+
+  # Assign a unique sample identifier to each tissue slice
+
+  for (i in seq_along(spe_list)) {
+    colData(spe_list[[i]])$sample_id <- names(spe_list)[i]
+  }
+
+  # Define a helper function to convert SpatialExperiment objects
+  # into Seurat objects while retaining spatial coordinates and
+  # relevant spot-level metadata
+
+  spe2seu_single <- function(spe_obj, sample_name = NULL,
+                            sel_assay = "counts", sel_col = "LS") {
+
+    if (is.null(sample_name)) sample_name <- spe_obj$sample[1]
+
+    meta_df <- data.frame(
+      barcode = colnames(spe_obj),
+      coord_x = int_colData(spe_obj)$spatialCoords[, 1],
+      coord_y = int_colData(spe_obj)$spatialCoords[, 2],
+      row.names = colnames(assays(spe_obj)[[sel_assay]])
+    )
+
+    if (!is.null(sel_col)) {
+      for (col in sel_col) {
+        meta_df[[col]] <- colData(spe_obj)[[col]]
+      }
+    }
+
+    seu <- CreateSeuratObject(
+      counts = assays(spe_obj)[[sel_assay]],
+      project = paste0("spe_", sample_name),
+      meta.data = meta_df
+    )
+
+    seu <- FindVariableFeatures(seu, verbose = FALSE)
+    return(seu)
+  }
+
+  niche_spe <- spe_list
+
+  # Convert each SpatialExperiment object into a Seurat object
+
+  seurat_ls <- mapply(
+    spe2seu_single,
+    niche_spe,
+    names(niche_spe),
+    SIMPLIFY = FALSE
+  )
+
+  # Stage 1: Identify spatial clusters within individual tissue slices
+
+  seurat_ls <- stage_1(
+    seurat_ls,
+    find_HVG = FALSE,
+    top_pcs = 8,
+    cor_threshold = 0.6,
+    cor_met = "PC",
+    edge_smoothing = TRUE,
+    nn = 6,
+    use_glmpca = TRUE,
+    verbose = TRUE,
+    cl_resolution = r1
+  )
+
+  # Stage 2: Match biologically similar clusters across tissue slices
+  # using the MNN-based approach
+
+  rtn_ls <- stage_2(
+    seurat_ls,
+    cl_key = "merged_cluster",
+    rtn_seurat = TRUE,
+    nn_2 = 10,
+    method = "MNN",
+    top_pcs = 8,
+    use_glmpca = TRUE,
+    rare_ct = "m",
+    resolution = r2,
+    hvg = nrow(spe_list[[1]])
+  )
+
+  # Assign shared MNN-based cluster labels to the Seurat objects
+
+  seurat_ls <- assign_label(
+    seurat_ls,
+    rtn_ls$cl_df,
+    "MNN",
+    0.6,
+    cl_key = "merged_cluster"
+  )
+
+  # Transfer the shared niche annotations back to the original
+  # SpatialExperiment objects using spot barcodes
+
+  for (sample_name in names(seurat_ls)) {
+
+    seu <- seurat_ls[[sample_name]]
+    clusters <- seu@meta.data$sec_cluster_MNN
+    barcodes <- colnames(seu)
+
+    spe_obj <- spe_list[[sample_name]]
+
+    colData(spe_obj)$sec_cluster_MNN <- NA
+    colData(spe_obj)[barcodes, "niche"] <- clusters
+
+    spe_list[[sample_name]] <- spe_obj
+  }
+
+  return(spe_list)
+
+}
+```
+
+We apply the above function to identify biologically similar
+niches across the four tissue slices.
+
+```{r run-niche-identification}
+spe_list_hvg = run_niche_mnn(spe_list_hvg)
+```
+
+Spots without assigned niche annotations are removed before
+applying MultiNorm.
+
+```{r remove-unassigned-niches}
+remove_na_niche <- function(x) {
+  lapply(x, function(s) {
+    s[, !is.na(s$niche)]
+  })
+}
+
+spe_list_hvg = remove_na_niche(spe_list_hvg)
+```
+
+## Visualising biological niches
+
+Before applying MultiNorm, we examine the spatial distribution
+of the identified biological niches across the tissue slices.
+
+The following code extracts the spatial coordinates and niche
+annotations from each SpatialExperiment object and combines
+them into a single data frame for visualisation.
+
+```{r prepare-niche-plot}
+data = lapply(names(spe_list_hvg), function(nm) {
+  s = spe_list_hvg[[nm]]
+  data.frame(
+    sample = nm,
+    x = spatialCoords(s)[,1],
+    y = spatialCoords(s)[,2],
+    cluster = s$niche
+  )
+}) %>% do.call(rbind,.)
+```
+
+The resulting spatial plots illustrate the distribution of
+shared biological niches across the four tissue slices.
+
+```{r plot-niches, fig.width=8, fig.height=6}
+library(ggplot2)
+library(ggsci)
+
+p = ggplot(data, aes(x = x, y = y, color = factor(cluster))) +
+  geom_point(size = 1) +
+  facet_wrap(~sample) +
+  labs(title = "DLPFC: Niches") +
+  scale_color_d3() +
+  guides(color = guide_legend(override.aes = list(size = 4))) +
+  theme_classic()
+
+p
+```
+
+# Applying MultiNorm
+
+Following data preprocessing and the identification of
+biologically similar regions, we apply MultiNorm to the list
+of SpatialExperiment objects.
+
+The `niche_col` argument specifies the column in the spot-level
+metadata containing the shared biological niche annotations.
+
+```{r run-multinorm}
+dlpfc_norm = MultiNorm(
+  spe_list_hvg,
+  niche_col  = "niche",
+  spot_frac  = 0.3,
+  df_bio     = c(6,6),
+  df_tech    = c(3,3),
+  lambdaC    = 10000,
+  verbose = TRUE
+)
+```
+
+The main arguments used in this demonstration are:
+
+- `spe_list_hvg`: A named list of SpatialExperiment objects
+  containing raw gene expression counts, spatial coordinates
+  and biological niche annotations.
+
+- `niche_col`: The name of the metadata column containing
+  shared biological niche annotations.
+
+- `spot_frac`: The fraction of spots selected during the
+  subsampling procedure.
+
+- `df_bio`: The degrees of freedom used to model the spatial
+  biological component.
+
+- `df_tech`: The degrees of freedom used to model the spatial
+  technical component.
+
+- `lambdaC`: The penalty parameter associated with the
+  cross-slice constraint.
+
+- `verbose`: Whether progress information is displayed during
+  the normalisation procedure.
+
+Users may adjust these parameters according to the characteristics
+of their datasets and the objectives of their analyses.
+
+# Evaluation of normalisation
+
+## Comparison of library size distributions
+
+To examine the effect of MultiNorm on unwanted variation,
+we compare the distribution of log library sizes before
+and after normalisation across the four tissue slices.
+
+```{r calculate-library-size}
+library(dplyr)
+library(ggplot2)
+library(Matrix)
+
+datalogLS <- lapply(names(dlpfc_norm), function(nm) {
+
+  spe <- dlpfc_norm[[nm]]
+
+  # Calculate log library sizes from raw counts
+  logLS_raw <- log1p(colSums(counts(spe)))
+
+  # Calculate log library sizes from normalised expression values
+  logLS_norm <- log1p(colSums(expm1(logcounts(spe))))
+
+  # Combine raw and normalised library sizes with sample identifiers
+  data.frame(
+    method = nm,
+    sample_id = spe$sample_id,
+    logLS_raw = logLS_raw,
+    logLS_norm = logLS_norm
+  )
+}) %>%
+  bind_rows()
+```
+
+The resulting data frame is converted into long format to
+facilitate the comparison of raw and normalised library
+size distributions.
+
+```{r prepare-library-size-plot}
+library(tidyr)
+
+datalogLS_long <- datalogLS %>%
+  pivot_longer(
+    cols = c(logLS_raw, logLS_norm),
+    names_to = "type",
+    values_to = "logLS"
+  )
+```
+
+## Visualising library size distributions
+
+The following boxplots illustrate the distribution of log
+library sizes before and after MultiNorm normalisation
+for each tissue slice.
+
+```{r plot-library-size, fig.width=8, fig.height=5}
+ggplot(datalogLS_long,
+       aes(x = factor(sample_id),
+           y = logLS,
+           fill = type)) +
+  geom_boxplot(outlier.shape = NA) +
+  #facet_wrap(~ method, nrow = 1) +
+  scale_fill_manual(
+    values = c("logLS_raw" = "grey70",
+               "logLS_norm" = "steelblue"),
+    labels = c("Normalised", "Raw")
+  ) +
+  theme_bw() +
+  labs(
+    x = "Slice",
+    y = "Log library size",
+    fill = NULL
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom",
+    strip.text = element_text(face = "bold")
+  ) + coord_cartesian(ylim = c(4,8))
+```
+
+Although library size distributions provide an overview of
+the effect of normalisation, additional biological evaluations
+are encouraged to assess the preservation of meaningful
+spatial gene expression patterns.
+
+
+# Session information
+
+```{r session-info}
+sessionInfo()
+```

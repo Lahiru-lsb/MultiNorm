@@ -1,160 +1,84 @@
 # MultiNorm
 
-**MultiNorm** is an R package for normalization of **multi-slice spatial transcriptomics (ST) data**.
+**MultiNorm** is an R package for spatially aware normalisation of multi-slice spatial transcriptomics (ST) data.
 
-The method decomposes observed gene-expression variation into biological and technical components. MultiNorm is designed to reduce unwanted technical variation while preserving biological spatial structure across slices.
+MultiNorm decomposes observed gene expression variation into biological and technical components. The method aims to reduce unwanted technical variation while preserving biologically meaningful spatial expression patterns within and across tissue slices.
 
-It uses pre-identified biological regions, referred to as **niches**, to encourage consistency of average biological signals across matched regions in different slices.
-
-## Overview
-
-MultiNorm fits a negative binomial model that includes:
-
--   spatial biological effects;
--   library-size-associated technical effects;
--   slice-specific technical intercept deviations; and
--   cross-slice constraints on matched biological niches.
-
-Biological and technical spatial effects are represented using two-dimensional spline bases. The cross-slice constraint is applied to the biological component so that shared biological structure is preserved during normalization.
+It uses pre-identified biological regions, referred to as **niches**, to encourage consistency of average biological signals across matched regions in different tissue slices.
 
 ## Installation
 
-You can install the development version of MultiNorm directly from GitHub:
+The development version of MultiNorm can be installed directly from GitHub:
 
 ``` r
-# Install remotes if needed
+# Install remotes if required
 install.packages("remotes")
 
 # Install MultiNorm
 remotes::install_github("Lahiru-lsb/MultiNorm")
 ```
 
-Then load the package:
+Load the package:
 
 ``` r
 library(MultiNorm)
 ```
 
-## Input
+## Input requirements
 
-The main function, `MultiNorm()`, expects a list of `SpatialExperiment` objects:
+MultiNorm accepts a named list of `SpatialExperiment` objects, where each object represents an individual tissue slice.
 
-``` r
-spe_list
-```
+Each object should contain:
 
-Each element of the list should represent one spatial transcriptomics slice.
+-   A raw gene expression count matrix.
+-   Two-dimensional spatial coordinates.
+-   Spot-level biological niche annotations.
+-   A common set of genes across tissue slices.
 
-Each `SpatialExperiment` object must contain a spot-level niche annotation in `colData`. Niches should represent biologically comparable regions that can be matched across slices.
-
-For example, if the niche labels are stored in:
-
-``` r
-colData(spe)$niche
-```
-
-then use:
-
-``` r
-niche_col = "niche"
-```
+Niche annotations should represent biologically comparable regions across slices. These annotations can be obtained using spatial clustering or integration methods, or from existing biological annotations.
 
 ## Quick start
 
-A basic MultiNorm analysis can be run as follows:
-
 ``` r
 library(MultiNorm)
 
-result <- MultiNorm(
+# Normalise multiple tissue slices
+norm_spe <- MultiNorm(
   spe_list = spe_list,
   niche_col = "niche"
 )
 ```
 
-By default, the returned object is a list of normalized `SpatialExperiment` objects:
+By default, MultiNorm returns a list of normalised `SpatialExperiment` objects.
 
 ``` r
-norm_spe <- result
+# Access the first normalised tissue slice
+norm_slice1 <- norm_spe[[1]]
+
+# Access normalised gene expression
+SummarizedExperiment::logcounts(norm_slice1)
 ```
 
-## Using selected niches
-
-By default, MultiNorm uses all shared niches available across slices.
-
-To use only selected niches:
+An example with user-specified parameters is shown below:
 
 ``` r
-result <- MultiNorm(
-  spe_list = spe_list,
-  niche_col = "niche",
-  preferred_niches = c("A", "B", "C")
-)
-```
-
-## Subsampling spots
-
-For large datasets, a proportion of spots can be used for model fitting using `spot_frac`.
-
-For example, to fit the model using 50% of spots:
-
-``` r
-result <- MultiNorm(
+norm_spe <- MultiNorm(
   spe_list = spe_list,
   niche_col = "niche",
   spot_frac = 0.5,
+  df_bio = c(6, 6),
+  df_tech = c(3, 3),
+  lambdaC = 10000,
+  lambda1 = 0.01,
+  lambda2 = 2,
   seed = 123,
   verbose = TRUE
 )
 ```
 
-`spot_frac` must be between 0 and 1.
-
-## Controlling spatial flexibility
-
-The flexibility of the biological and technical spatial effects can be controlled using `df_bio` and `df_tech`.
-
-``` r
-result <- MultiNorm(
-  spe_list = spe_list,
-  niche_col = "niche",
-  df_bio = c(8, 8),
-  df_tech = c(4, 4)
-)
-```
-
-The default values are:
-
-``` r
-df_bio  = c(6, 6)
-df_tech = c(3, 3)
-```
-
-## Regularization
-
-MultiNorm includes regularization parameters for the biological and technical spline components.
-
-``` r
-result <- MultiNorm(
-  spe_list = spe_list,
-  niche_col = "niche",
-  lambdaC = 10000,
-  lambda1 = 0.01,
-  lambda2 = 2
-)
-```
-
-The main parameters are:
-
--   `lambdaC`: strength of the cross-slice biological consistency constraint;
--   `lambda1`: ridge regularization for biological spline coefficients;
--   `lambda2`: ridge regularization for technical spline coefficients.
-
-For most analyses, the default values can be used as a starting point.
-
 ## Returning fitted model parameters
 
-To return fitted model parameters together with the normalized data:
+Fitted model parameters can be returned together with the normalised data by setting `return_fit = TRUE`.
 
 ``` r
 result <- MultiNorm(
@@ -167,84 +91,47 @@ norm_spe <- result$norm_spe
 fit <- result$fit
 ```
 
-When `return_fit = TRUE`, the returned object also contains:
+## Vignette
 
--   `norm_spe`: normalized `SpatialExperiment` objects;
--   `fit`: fitted model parameters;
--   `call`: matched function call;
--   `Eta_full_list`: fitted full linear predictors for each slice;
--   `percentiles`: fitted negative-binomial percentiles used for the PAC transformation.
+A detailed demonstration of MultiNorm is provided using four human dorsolateral prefrontal cortex (DLPFC) tissue slices from the `spatialLIBD` package.
 
-## Main function
+The vignette covers:
 
-The main normalization function is:
+1.  Downloading and preparing spatial transcriptomics data.
+2.  Performing basic quality control.
+3.  Selecting common highly variable genes.
+4.  Identifying biologically similar niches across slices.
+5.  Applying MultiNorm.
+6.  Comparing library size distributions before and after normalisation.
+
+To access the installed vignette:
 
 ``` r
-MultiNorm()
+vignette("MultiNorm", package = "MultiNorm")
 ```
 
-To view its complete documentation in R:
+## Documentation
+
+For detailed information about the available parameters and returned objects, refer to the function documentation:
 
 ``` r
 ?MultiNorm
 ```
 
-or:
+## Citation
+
+Citation information can be accessed using:
 
 ``` r
-help("MultiNorm", package = "MultiNorm")
+citation("MultiNorm")
 ```
 
-The full function includes additional options for convergence control, damping, initialization, contrast specification, and model fitting. These advanced arguments are documented in the R help page.
+## License
 
-## Example workflow
+MultiNorm is distributed under the GPL-3 license.
 
-A typical workflow is:
+## Issues and feedback
 
-``` r
-library(MultiNorm)
+For bug reports, feature requests or questions, please open an issue in the GitHub repository:
 
-# 1. Prepare a list of SpatialExperiment objects
-spe_list <- list(slice1, slice2, slice3)
-
-# 2. Run MultiNorm
-norm_spe <- MultiNorm(
-  spe_list = spe_list,
-  niche_col = "niche"
-)
-
-# 3. Access a normalized slice
-norm_slice1 <- norm_spe[[1]]
-```
-
-The normalized `SpatialExperiment` objects can then be used in downstream analyses such as spatial visualization, spatially variable gene detection, clustering, or other multi-slice analyses.
-
-## Method summary
-
-For each gene, MultiNorm models expression using a negative binomial framework that separates biological and technical sources of variation.
-
-Conceptually, the method decomposes expression into:
-
-``` text
-Observed expression
-        |
-        +-- Biological spatial smooth variation
-        |
-        +-- Library-size-associated smooth technical variation
-        |
-        +-- Slice-specific technical variation
-```
-
-Cross-slice constraints are applied to matched niches to preserve shared biological structure while normalization targets unwanted technical effects.
-
-## Repository
-
-Source code and development versions of MultiNorm are available at:
-
-<https://github.com/Lahiru-lsb/MultiNorm>
-
-## Issues
-
-If you encounter a bug or have a feature request, please open an issue in the GitHub repository.
-
-## 
+<https://github.com/Lahiru-lsb/MultiNorm/issues>

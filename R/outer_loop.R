@@ -499,9 +499,9 @@ fit_all_genes_nb_multislice <- function(
 #
 #     cat("\n=== Outer iteration", k, "===\n")
 #
-#     # ============================================================
+#
 #     # 1. UPDATE DISPERSION FIRST, USING CURRENT ACCEPTED Mu
-#     # ============================================================
+#
 #
 #     Psi_list_old <- Psi_list
 #     Psi_new <- vector("list", S)
@@ -547,9 +547,9 @@ fit_all_genes_nb_multislice <- function(
 #
 #     cat("baseline after Psi update =", round(ll_baseline, 4), "\n")
 #
-#     # ============================================================
+#
 #     # 2. RUN INNER IRWLS/BACKFITTING WITH UPDATED Psi FIXED
-#     # ============================================================
+#
 #
 #     ir <- irwls_multislice_backfit(
 #       Y_list = Y_list,
@@ -574,9 +574,9 @@ fit_all_genes_nb_multislice <- function(
 #       ll_start = ll_baseline
 #     )
 #
-#     # ============================================================
+#
 #     # 3. ACCEPT INNER-LOOP RESULTS
-#     # ============================================================
+#
 #
 #     alpha <- ir$alpha
 #     zeta <- ir$zeta
@@ -594,9 +594,9 @@ fit_all_genes_nb_multislice <- function(
 #     cat("log-likelihood =", round(ll_new, 4), "\n")
 #     ll_trace[k] <- ll_new
 #
-#     # ============================================================
+#
 #     # 4. OUTER CONVERGENCE CHECK
-#     # ============================================================
+#
 #
 #     if (k > 1 && abs(ll_new - ll_old) / max(1, abs(ll_old)) < tol_disp) {
 #       cat("Converged at outer iteration", k, "\n")

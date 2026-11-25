@@ -1,18 +1,27 @@
 Package: MultiNorm
 Type: Package
-Title: Spatially-aware normalisation for multi slice spatial transcriptomics data
+Title: Spatially Aware Normalisation for Multi-Slice Spatial Transcriptomics Data
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
-      role = c("aut", "cre")
-    )
-  )
-Description: This R package, MultiNorm, is designed to normalize multi-slice spatial transcriptomics data. It decomposes variation into technical variation, which is unwanted, and biological variation, which should be preserved during normalization. The method further ensures that the similarity of average biological signals in pre-identified regions (niches) across slices is maintained.
+        given = "Lahiru",
+        family = "Boyagoda",
+        email = "wboyagoda@student.unimelb.edu.au",
+        role = c("aut", "cre"),
+        comment = c(ORCID = "0009-0003-1367-2279")
+    )  )
+Description: Provides a spatially aware normalisation method for multi-slice
+    spatial transcriptomics data. The method decomposes gene expression
+    variation into unwanted technical variation and biologically
+    variation, aiming to remove technical effects while preserving biological
+    signals. It further incorporates constraints to preserve the similarity
+    of average biological signals within pre-identified regions (niches)
+    across tissue slices.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Depends:
+    R (>= 4.5)
 Imports:
     Matrix,
     splines,
@@ -23,6 +32,22 @@ Imports:
     stats,
     matrixStats,
     S4Vectors
+Suggests:
+    atlasClustering,
+    DescTools,
+    dplyr,
+    ggplot2,
+    ggsci,
+    HiClimR,
+    knitr,
+    rmarkdown,
+    scran,
+    scuttle,
+    Seurat,
+    spatialLIBD,
+    stringr,
+    tidyr
+VignetteBuilder: knitr
 RoxygenNote: 7.3.3
-Depends: 
-    R (>= 4.5)
+URL: https://github.com/Lahiru-lsb/MultiNorm,
+    https://lahiru-lsb.github.io/MultiNorm/
