@@ -104,18 +104,13 @@
 #'   }
 #'
 #' @details
-#' The method fits a negative binomial model with spatial biological effects,
-#' library-size-associated technical effects, and slice-specific technical
-#' intercept deviations. Biological and technical effects are modeled using
+#' The method fits a negative binomial model with spatial varying biological effects,
+#' library size-associated technical effects, and slice-specific technical
+#' effect. Biological and technical effects are modeled using
 #' two-dimensional spline bases. Cross-slice biological consistency is encouraged
 #' through matched niche-level constraints applied only to the biological spline
 #' component.
 #'
-#' The model includes a global gene-specific intercept and a slice-specific
-#' technical intercept deviation represented using sum-to-zero contrasts. This
-#' allows slice-level technical shifts not explained by library size to be
-#' modeled explicitly, while preserving the biological niche-matching constraint
-#' on the biological component.
 #'
 #' Parameter estimation is performed using iteratively reweighted least squares
 #' (IRWLS), with outer-loop updates for negative binomial dispersion parameters.
