@@ -113,7 +113,7 @@ library(SpatialExperiment)
 
 # Download the DLPFC dataset
 spe <- spatialLIBD::fetch_data(type = "spe")
-#> 2026-11-26 08:25:09.395907 loading file /home/wboyagoda/.cache/R/BiocFileCache/1a0444ceef1df_Human_DLPFC_Visium_processedData_sce_scran_spatialLIBD.Rdata%3Fdl%3D1
+#> 2026-11-27 23:41:10.251082 loading file /home/wboyagoda/.cache/R/BiocFileCache/1a0444ceef1df_Human_DLPFC_Visium_processedData_sce_scran_spatialLIBD.Rdata%3Fdl%3D1
 
 # Inspect the dataset
 spe
@@ -537,7 +537,7 @@ spe_list_hvg = run_niche_mnn(spe_list_hvg)
 #> spe_151510 cluster number: 99
 #> spe_151510 merged cluster number: 38
 #> Elasped Time:
-#> 10.4 secs
+#> 12 secs
 #> Warning: Data is of class matrix. Coercing to dgCMatrix.
 #> Normalizing layer: counts
 ```
@@ -678,7 +678,7 @@ dlpfc_norm = MultiNorm(
 #> Converged at iteration 2
 #> log-likelihood = -2666100 
 #> Converged at outer iteration 3
-#> Total runtime (mins): 0.7
+#> Total runtime (mins): 0.81
 ```
 
 The main arguments used in this demonstration are:
